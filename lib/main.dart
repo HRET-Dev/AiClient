@@ -1,12 +1,21 @@
-import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 
-void main() => runApp(const App());
+import 'app.dart';
 
-class App extends StatelessWidget {
-  const App({super.key});
+void main() async {
+  // 初始化Easy_Localization库
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
-  @override
-  Widget build(BuildContext context) {
-    return Center();
-  }
+  runApp(
+    EasyLocalization(
+        supportedLocales: [
+          Locale('zh', 'CN'),
+          Locale('en', 'US'),
+        ],
+        path: 'assets/translations',
+        fallbackLocale: Locale('zh', 'CN'),
+        child: App()),
+  );
 }
