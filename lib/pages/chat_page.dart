@@ -5,10 +5,10 @@ import 'package:tdesign_flutter/tdesign_flutter.dart';
 /// 聊天
 class ChatPage extends StatefulWidget {
   @override
-  _ChatPageState createState() => _ChatPageState();
+  ChatPageState createState() => ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class ChatPageState extends State<ChatPage> {
   // 文本输入框内容
   TextEditingController _messageController = TextEditingController(); // 非空初始化
   final ScrollController _scrollController = ScrollController();
@@ -42,17 +42,10 @@ class _ChatPageState extends State<ChatPage> {
                 color: TDTheme.of(context).brandColor6,
               ),
         onBtnTap: () {
-          // 判断是否输入了值
-          if (_messageController.text.isEmpty) {
-            // 空值不做任何操作
-            return;
-          }
-
-          TDToast.showText('发送消息：${_messageController.text}', context: context);
-          // 清除输入值
-          _messageController.clear();
-          // 刷新输入框状态
-          setState(() {});
+          _inputConfirm();
+        },
+        onEditingComplete: () {
+          _inputConfirm();
         },
         onChanged: (text) {
           setState(() {});
@@ -60,6 +53,21 @@ class _ChatPageState extends State<ChatPage> {
         needClear: false,
       ),
     );
+  }
+
+  /// 文本消息框确认事件方法
+  void _inputConfirm() {
+    // 判断是否输入了值
+    if (_messageController.text.isEmpty) {
+      // 空值不做任何操作
+      return;
+    }
+
+    TDToast.showText('发送消息：${_messageController.text}', context: context);
+    // 清除输入值
+    _messageController.clear();
+    // 刷新输入框状态
+    setState(() {});
   }
 
   @override
