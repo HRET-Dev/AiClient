@@ -31,7 +31,7 @@ class _ChatPageState extends State<ChatPage> {
         controller: _messageController,
         width: MediaQuery.of(context).size.width - 20,
         backgroundColor: Colors.white,
-        hintText: tr('chat_page_input_hintText'),
+        hintText: tr('chat_page.input_hintText'),
         rightBtn: _messageController.text.isEmpty
             ? Icon(
                 TDIcons.arrow_up_circle_filled,
@@ -51,6 +51,8 @@ class _ChatPageState extends State<ChatPage> {
           TDToast.showText('发送消息：${_messageController.text}', context: context);
           // 清除输入值
           _messageController.clear();
+          // 刷新输入框状态
+          setState(() {});
         },
         onChanged: (text) {
           setState(() {});

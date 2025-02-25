@@ -1,6 +1,13 @@
 {
+  "Language": "简体中文",
   "Chat": "聊天",
   "History": "历史",
   "Settings": "设置",
-  "chat_page_input_hintText": "在这里输入消息..."
+  "chat_page": {
+    "input_hintText": "在这里输入消息..."
+  },
+  "settings_page": {
+    "language_button_text": "语言",
+    "select_language": "选择语言"
+  }
 }

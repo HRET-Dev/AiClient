@@ -1,4 +1,5 @@
 import 'package:ai_client/pages/chat_page.dart';
+import 'package:ai_client/pages/settings/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
@@ -66,18 +67,6 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  /// 切换语言
-  void _changeLocale() async {
-    // 获取当前语言在支持的语言列表中的索引
-    final currentIndex = context.supportedLocales.indexOf(context.locale);
-
-    // 计算下一个语言的索引，使用取模运算确保循环切换
-    final nextIndex = (currentIndex + 1) % context.supportedLocales.length;
-
-    // 切换到下一个语言
-    await context.setLocale(context.supportedLocales[nextIndex]);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,15 +75,10 @@ class _HomePageState extends State<HomePage>
         children: [
           ChatPage(), // 聊天
           Container(), // 历史
-          Container(), // 设置
+          SettingsPage(), // 设置
         ],
       ),
       bottomNavigationBar: _buildBottomBarWithSafeArea(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _changeLocale,
-        tooltip: '切换语言',
-        child: Icon(TDIcons.earth),
-      ),
     );
   }
 }
