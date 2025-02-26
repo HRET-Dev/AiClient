@@ -71,13 +71,17 @@ class HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          ChatPage(), // 聊天
-          Container(), // 历史
-          SettingsPage(), // 设置
-        ],
+      body: SafeArea(
+        bottom: false,
+        minimum: const EdgeInsets.only(top: 4), // 最小保持4dp的间距
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            ChatPage(), // 聊天
+            Container(), // 历史
+            SettingsPage(), // 设置
+          ],
+        ),
       ),
       bottomNavigationBar: _buildBottomBarWithSafeArea(),
     );

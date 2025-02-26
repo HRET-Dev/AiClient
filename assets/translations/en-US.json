@@ -1,17 +1,23 @@
 {
-  "Language": "English",
   "Chat": "Chat",
   "History": "History",
   "Settings": "Settings",
+  "this_feature_is_under_development": "This feature is under development",
   "chat_page": {
     "input_hintText": "Enter message here..."
   },
   "settings_page": {
-    "language_button_text": "Language",
-    "select_language": "Select Language",
-    "language_list": {
-      "zh_CN": "simplified Chinese",
-      "en_US": "English US"
+    "api_setting": {
+      "api_manager": "API Manager",
+      "add_api": "Add API"
+    },
+    "language_setting": {
+      "language_button_text": "Language",
+      "select_language": "Select Language",
+      "language_list": {
+        "zh_CN": "Simplified Chinese",
+        "en_US": "English (US)"
+      }
     }
   }
 }

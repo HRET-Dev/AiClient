@@ -2,15 +2,22 @@
   "Chat": "聊天",
   "History": "历史",
   "Settings": "设置",
+  "this_feature_is_under_development": "该功能正在开发中",
   "chat_page": {
     "input_hintText": "在这里输入消息..."
   },
   "settings_page": {
-    "language_button_text": "语言",
-    "select_language": "选择语言",
-    "language_list": {
-      "zh_CN": "简体中文",
-      "en_US": "英语（美国）"
+    "api_setting": {
+      "api_manager": "API 管理",
+      "add_api": "添加 API"
+    },
+    "language_setting": {
+      "language_button_text": "语言",
+      "select_language": "选择语言",
+      "language_list": {
+        "zh_CN": "简体中文",
+        "en_US": "英语（美国）"
+      }
     }
   }
 }
