@@ -8,6 +8,10 @@
   },
   "settings_page": {
     "language_button_text": "Language",
-    "select_language": "Select Language"
+    "select_language": "Select Language",
+    "language_list": {
+      "zh_CN": "simplified Chinese",
+      "en_US": "English US"
+    }
   }
 }

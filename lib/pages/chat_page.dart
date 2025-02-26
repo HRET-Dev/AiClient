@@ -1,3 +1,4 @@
+import 'package:ai_client/generated/locale_keys.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
@@ -31,7 +32,7 @@ class ChatPageState extends State<ChatPage> {
         controller: _messageController,
         width: MediaQuery.of(context).size.width - 20,
         backgroundColor: Colors.white,
-        hintText: tr('chat_page.input_hintText'),
+        hintText: tr(LocaleKeys.chatPageInputHintText),
         rightBtn: _messageController.text.isEmpty
             ? Icon(
                 TDIcons.arrow_up_circle_filled,

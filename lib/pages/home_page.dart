@@ -1,3 +1,4 @@
+import 'package:ai_client/generated/locale_keys.dart';
 import 'package:ai_client/pages/chat_page.dart';
 import 'package:ai_client/pages/settings/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -6,10 +7,10 @@ import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 class HomePage extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
+class HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -28,21 +29,21 @@ class _HomePageState extends State<HomePage>
   Widget _buildItemWithIcon() {
     final tabs = [
       TDTab(
-        text: tr('Chat'),
+        text: tr(LocaleKeys.chat),
         icon: Icon(
           TDIcons.chat_bubble_1,
           size: 18,
         ),
       ),
       TDTab(
-        text: tr('History'),
+        text: tr(LocaleKeys.history),
         icon: Icon(
           TDIcons.chat_bubble_history,
           size: 18,
         ),
       ),
       TDTab(
-        text: tr('Settings'),
+        text: tr(LocaleKeys.settings),
         icon: const Icon(
           TDIcons.setting,
           size: 18,
