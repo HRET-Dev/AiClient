@@ -20,8 +20,10 @@ class ChatPageState extends State<ChatPage> {
 
   // 使用 ChatHttp 调用 OpenAI 接口
   final ChatHttp _chatHttp = ChatHttp(Dio());
+
   // 用于查询存储在本地的 API 配置信息
   final AIApiRepository _apiRepository = AIApiRepository();
+
   // 加载到的 API 配置
   AIApi? _apiConfig;
 
@@ -39,8 +41,10 @@ class ChatPageState extends State<ChatPage> {
         _apiConfig = apis.first;
       });
     } else {
-      // 若数据库中没有配置，也可以考虑使用默认配置或提示用户配置相关信息
-      TDToast.showText('未找到 API 配置信息', context: context);
+      if (mounted) {
+        // 若数据库中没有配置，也可以考虑使用默认配置或提示用户配置相关信息
+        TDToast.showText('未找到 API 配置信息', context: context);
+      }
     }
   }
 
@@ -133,7 +137,19 @@ class ChatPageState extends State<ChatPage> {
         _messages.add(ChatMessage(content: aiReply, isUser: false));
       });
     } catch (e) {
-      TDToast.showText('请求出错: $e', context: context);
+      if (mounted) {
+        showGeneralDialog(
+          context: context,
+          pageBuilder: (BuildContext buildContext, Animation<double> animation,
+              Animation<double> secondaryAnimation) {
+            return TDConfirmDialog(
+              title: '请求出错',
+              content: '$e',
+              contentMaxHeight: 300,
+            );
+          },
+        );
+      }
     }
     _scrollToBottom();
   }

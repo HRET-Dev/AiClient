@@ -143,7 +143,9 @@ class AIApi {
 // 定义一个简单的消息模型
 class ChatMessage {
   final String content;
-  final bool isUser; // true 表示用户消息，false 表示 AI 回复
+
+  /// true 表示用户消息，false 表示 AI 回复
+  final bool isUser;
 
   ChatMessage({required this.content, required this.isUser});
 }
