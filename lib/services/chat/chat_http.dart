@@ -43,6 +43,7 @@ class ChatHttp {
       );
       return response;
     } catch (e) {
+      print('请求异常：$e');
       rethrow;
     }
   }

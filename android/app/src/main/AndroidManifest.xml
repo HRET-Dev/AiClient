@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+  <!-- 允许访问网络 -->
+  <uses-permission android:name="android.permission.INTERNET" />
   <application
     android:icon="@mipmap/launcher_icon"
     android:label="AiClient"
