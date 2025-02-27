@@ -38,8 +38,25 @@ class _ApiSettings extends State<ApiSettings> {
       body: Column(
         children: [
           // API 列表
-          ApiList()
+          ApiList(),
         ],
+      ),
+      // 内容居中
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      // 添加按钮
+      floatingActionButton: TDFab(
+        theme: TDFabTheme.light,
+        text: tr(LocaleKeys.settingPageApiSettingAddApi),
+        onClick: () {
+          TDToast.showText(tr(LocaleKeys.thisFeatureIsUnderDevelopment),
+              context: context);
+          // Navigator.of(context).push(TDSlidePopupRoute(
+          //     modalBarrierColor: TDTheme.of(context).fontGyColor2,
+          //     slideTransitionFrom: SlideTransitionFrom.center,
+          //     builder: (context) {
+          //       return ApiInsert();
+          //     }));
+        },
       ),
     );
   }
