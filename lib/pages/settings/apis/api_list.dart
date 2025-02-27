@@ -50,7 +50,7 @@ class _ApiListState extends State<ApiList> {
         final newService = AIApi(
           serviceName: 'Default OpenAI GPT-4o',
           serviceType: 'TEXT_GEN',
-          baseUrl: 'https://free.zeroai.chat/v1',
+          baseUrl: 'https://free.zeroai.chat/v1/chat/completions',
           apiKey: 'hret',
           modelName: 'gpt-4o',
           maxTokens: 2000,

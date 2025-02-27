@@ -1,12 +1,25 @@
 class AIApi {
   static String tableName = 'ai_apis';
 
+  /// API ID
   final int? id;
+
+  /// API 名称
   final String serviceName;
+
+  /// API 类型
   final String serviceType;
+
+  /// API 地址
   final String? baseUrl;
+
+  /// API 密钥
   final String apiKey;
+
+  /// 模型名称
   final String? modelName;
+
+  /// 最大输出 Tokens
   final int maxTokens;
   final double temperature;
   final bool isActive;
@@ -125,4 +138,12 @@ class AIApi {
         'isActive: $isActive'
         ')';
   }
+}
+
+// 定义一个简单的消息模型
+class ChatMessage {
+  final String content;
+  final bool isUser; // true 表示用户消息，false 表示 AI 回复
+
+  ChatMessage({required this.content, required this.isUser});
 }
