@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:ai_client/common/utils/db/database_helper.dart';
 import 'package:ai_client/common/utils/loading_indicator.dart';
+import 'package:ai_client/generated/default_api_configs.dart';
 import 'package:ai_client/models/ai_api.dart';
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
@@ -46,17 +47,13 @@ class _ApiListState extends State<ApiList> {
 
       // 空数据添加默认数据
       if (data.isEmpty) {
-        // 创建默认数据实体
-        final newService = AIApi(
-          serviceName: 'Default OpenAI GPT-4o',
-          serviceType: 'TEXT_GEN',
-          baseUrl: 'https://free.zeroai.chat/v1/chat/completions',
-          apiKey: 'hret',
-          modelName: 'gpt-4o',
-          maxTokens: 2000,
-        ).toMap();
+        // 获取默认模型信息
+        var defaultApiConfig = DefaultApiConfigs.defaultApiConfig;
+        // 转换为 Map 列表
+        List<Map<String, dynamic>> apiMaps =
+            defaultApiConfig.map((api) => api.toMap()).toList();
         // 添加默认数据到数据库
-        await dbHelper.insert(AIApi.tableName, newService);
+        await dbHelper.insertMultiple(AIApi.tableName, apiMaps);
         // 刷新数据
         data = await dbHelper.query(AIApi.tableName);
       }

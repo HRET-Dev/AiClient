@@ -7,13 +7,13 @@ class AIApiRepository {
 
   // 插入一条 AIApi 信息到数据库
   Future<int?> addAIApi(AIApi api) async {
-    return await _dbHelper.insert('ai_apis', api.toMap());
+    return await _dbHelper.insert(AIApi.tableName, api.toMap());
   }
 
   // 查询所有存储的 AIApi 信息
   Future<List<AIApi>> getAllAIApis() async {
     final List<Map<String, dynamic>> maps =
-        await _dbHelper.query('ai_apis');
+        await _dbHelper.query(AIApi.tableName);
     return maps.map((map) => AIApi.fromMap(map)).toList();
   }
 
@@ -23,7 +23,7 @@ class AIApiRepository {
       throw ArgumentError('AIApi 对象必须包含有效的 id 才能更新');
     }
     return await _dbHelper.update(
-      'ai_apis',
+      AIApi.tableName,
       api.toMap(),
       where: 'id = ?',
       whereArgs: [api.id],
@@ -33,7 +33,7 @@ class AIApiRepository {
   // 删除某条 AIApi 信息（依据 id 删除）
   Future<int> deleteAIApi(int id) async {
     return await _dbHelper.delete(
-      'ai_apis',
+      AIApi.tableName,
       where: 'id = ?',
       whereArgs: [id],
     );

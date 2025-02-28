@@ -3,13 +3,17 @@
   "History": "History",
   "Settings": "Settings",
   "this_feature_is_under_development": "This feature is under development",
+  "please_select": "Please select",
   "chat_page": {
-    "input_hintText": "Enter message here..."
+    "input_hintText": "Enter message here...",
+    "copy_success": "Copied to clipboard"
   },
   "settings_page": {
     "api_setting": {
       "api_manager": "API Manager",
-      "add_api": "Add API"
+      "add_api": "Add API",
+      "add_success": "API added successfully",
+      "add_failed": "API adding failed"
     },
     "language_setting": {
       "language_button_text": "Language",
@@ -19,5 +23,21 @@
         "en_US": "English (US)"
       }
     }
+  },
+  "ai_api_model": {
+    "api_name": "API Name",
+    "enter_api_name": "Enter API Name",
+    "api_provider": "API Provider",
+    "select_api_provider": "API Provider",
+    "api_type": "API Service Type",
+    "select_api_type": "API Service Type",
+    "api_base_url": "API Base URL",
+    "enter_api_base_url": "Enter API Base URL",
+    "api_key": "API Key",
+    "enter_api_key": "Enter API Key",
+    "model_name": "Model Name",
+    "enter_model_name": "Enter Model Name",
+    "model_config": "Model Configuration",
+    "enter_model_config": "Enter Model Configuration (JSON, optional)"
   }
 }

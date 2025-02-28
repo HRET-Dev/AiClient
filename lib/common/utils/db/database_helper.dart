@@ -59,6 +59,31 @@ class DatabaseHelper {
     }
   }
 
+  // 新增的批量插入方法
+  Future<List<int>?> insertMultiple(
+      String table, List<Map<String, dynamic>> dataList) async {
+    try {
+      final db = await database;
+      final batch = db.batch();
+
+      // 批量添加插入操作
+      for (final data in dataList) {
+        batch.insert(
+          '$DB_TABLE_PREFIX$table',
+          data,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+
+      // 提交事务并返回所有插入结果的ID列表
+      final results = await batch.commit(noResult: false);
+      return results.cast<int>(); // 将结果转换为int列表
+    } catch (e) {
+      print('批量添加异常: $e');
+      return null;
+    }
+  }
+
   // 通用查询方法
   Future<List<Map<String, dynamic>>> query(
     String table, {

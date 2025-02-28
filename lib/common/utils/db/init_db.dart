@@ -10,25 +10,25 @@ class InitDb {
   // AI API 信息表结构
   static String createAIApiTable = '''
     CREATE TABLE IF NOT EXISTS ${DB_TABLE_PREFIX}ai_apis (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      serviceName TEXT NOT NULL CHECK(length(serviceName) <= 50),
-      serviceType TEXT NOT NULL CHECK(serviceType IN ('TEXT_GEN', 'IMAGE_GEN', 'SPEECH_RECOG', 'OTHER')),
-      baseUrl TEXT CHECK(length(baseUrl) <= 200),
-      apiKey TEXT NOT NULL CHECK(length(apiKey) <= 200),
-      modelName TEXT CHECK(length(modelName) <= 50),
-      maxTokens INTEGER DEFAULT 1000,
-      temperature REAL DEFAULT 1.0 CHECK(temperature BETWEEN 0.0 AND 2.0),
-      isActive BOOLEAN DEFAULT 1,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(serviceName, serviceType)
+      id INTEGER PRIMARY KEY AUTOINCREMENT, -- 主键，自增
+      serviceName TEXT NOT NULL CHECK(length(serviceName) <= 50), -- API 名称，最大长度50
+      provider TEXT NOT NULL CHECK(provider IN ('OpenAI', 'Anthropic')), -- API 服务商，目前支持 OpenAI 和 Anthropic
+      serviceType TEXT NOT NULL CHECK(serviceType IN ('TEXT_GEN', 'IMAGE_GEN', 'SPEECH_RECOG', 'OTHER')), -- API 类型，支持文本生成、图像生成、语音识别等
+      baseUrl TEXT CHECK(length(baseUrl) <= 200), -- API 地址，最大长度200
+      apiKey TEXT NOT NULL CHECK(length(apiKey) <= 200), -- API 密钥，最大长度200
+      modelName TEXT CHECK(length(modelName) <= 50), -- 模型名称，最大长度50
+      modelConfig TEXT, -- 模型配置，存储为 JSON 字符串
+      isActive BOOLEAN DEFAULT 1, -- 是否启用，默认为启用状态
+      createdAt DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%f+08:00', 'now')), -- 创建时间，默认为当前时间
+      updatedAt DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%f+08:00', 'now')), -- 更新时间，默认为当前时间
+      UNIQUE(serviceName, serviceType) -- 唯一约束，确保服务名称和类型的组合唯一
     );
-    
+  
     CREATE INDEX IF NOT EXISTS idx_service_type 
-    ON ${DB_TABLE_PREFIX}ai_apis (serviceType);
+    ON ${DB_TABLE_PREFIX}ai_apis (serviceType); -- 创建服务类型索引
     
     CREATE INDEX IF NOT EXISTS idx_active_apis
-    ON ${DB_TABLE_PREFIX}ai_apis (isActive);
+    ON ${DB_TABLE_PREFIX}ai_apis (isActive); -- 创建是否启用索引
   ''';
 
   // 数据库升级逻辑（可根据版本迭代扩展）

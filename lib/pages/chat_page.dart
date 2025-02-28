@@ -5,6 +5,8 @@ import 'package:ai_client/services/chat/chat_http.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 /// 聊天页面，同时集成了 HTTP 请求和 SQLite 加载 API 配置信息
@@ -63,6 +65,7 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
+  /// 构建输入区域
   Widget _buildInputArea() {
     return SafeArea(
       top: false,
@@ -93,23 +96,41 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
+  /// 构建消息项
   Widget _buildMessageItem(ChatMessage message) {
     return Container(
       alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
       padding: EdgeInsets.symmetric(vertical: 4),
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: message.isUser
-              ? TDTheme.of(context).brandColor6.withOpacity(0.2)
-              : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(8),
+      child: GestureDetector(
+        onLongPress: () {
+          Clipboard.setData(ClipboardData(text: message.content));
+          TDToast.showText(tr(LocaleKeys.chatPageCopySuccess),
+              context: context);
+        },
+        child: Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: message.isUser
+                ? TDTheme.of(context).brandColor6.withOpacity(0.2)
+                : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: MarkdownBody(
+            data: message.content,
+            styleSheet: MarkdownStyleSheet(
+              p: TextStyle(fontSize: 16, color: Colors.black),
+              strong: TextStyle(fontWeight: FontWeight.bold),
+              em: TextStyle(fontStyle: FontStyle.italic),
+              code: TextStyle(
+                  backgroundColor: Colors.grey[300], fontFamily: 'monospace'),
+            ),
+          ),
         ),
-        child: Text(message.content),
       ),
     );
   }
 
+  /// 输入框
   Future<void> _inputConfirm() async {
     if (_messageController.text.isEmpty) return;
 
@@ -137,19 +158,19 @@ class ChatPageState extends State<ChatPage> {
         _messages.add(ChatMessage(content: aiReply, isUser: false));
       });
     } catch (e) {
-      if (mounted) {
-        showGeneralDialog(
-          context: context,
-          pageBuilder: (BuildContext buildContext, Animation<double> animation,
-              Animation<double> secondaryAnimation) {
-            return TDConfirmDialog(
-              title: '请求出错',
-              content: '$e',
-              contentMaxHeight: 300,
-            );
-          },
-        );
+      // 控制台打印错误信息
+      print('请求出错: $e');
+      // 出错时，显示错误信息
+      String errorMessage = '请求出错';
+      if (e is DioException && e.response != null) {
+        errorMessage =
+            '请求出错: 状态码 ${e.response!.statusCode} - ${e.response!.statusMessage}';
+      } else {
+        errorMessage = '请求出错: $e';
       }
+      setState(() {
+        _messages.add(ChatMessage(content: errorMessage, isUser: false));
+      });
     }
     _scrollToBottom();
   }

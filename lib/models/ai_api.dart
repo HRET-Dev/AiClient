@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import '../generated/default_api_configs.dart';
+
 class AIApi {
   static String tableName = 'ai_apis';
 
@@ -7,7 +11,10 @@ class AIApi {
   /// API 名称
   final String serviceName;
 
-  /// API 类型
+  /// API 服务商 (e.g., 'OpenAI', 'Anthropic')
+  final String provider;
+
+  /// API 类型 (e.g., 'TEXT_GEN', 'IMAGE_GEN')
   final String serviceType;
 
   /// API 地址
@@ -19,61 +26,131 @@ class AIApi {
   /// 模型名称
   final String? modelName;
 
-  /// 最大输出 Tokens
-  final int maxTokens;
-  final double temperature;
+  /// 模型配置 (e.g., maxTokens, temperature)
+  final Map<String, dynamic> modelConfig;
+
+  /// 是否启用
   final bool isActive;
+
+  /// 创建时间
   final DateTime createdAt;
+
+  /// 更新时间
   final DateTime updatedAt;
 
   AIApi({
     this.id,
     required this.serviceName,
+    required this.provider,
     required this.serviceType,
     this.baseUrl,
     required this.apiKey,
     this.modelName,
-    this.maxTokens = 1000,
-    this.temperature = 1.0,
+    Map<String, dynamic>? modelConfig,
     this.isActive = true,
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now().toUtc(),
-        updatedAt = updatedAt ?? DateTime.now().toUtc(),
-        assert(maxTokens > 0, 'Max tokens must be positive'),
-        assert(temperature >= 0.0 && temperature <= 2.0,
-            'Temperature must be between 0.0 and 2.0') {
+  })  : modelConfig = modelConfig ?? {},
+        createdAt = createdAt ?? DateTime.now().toUtc(),
+        updatedAt = updatedAt ?? DateTime.now().toUtc() {
     _validateServiceType();
+    _validateProvider();
   }
 
-  // 校验服务类型
+  /// 校验服务类型
   void _validateServiceType() {
-    const validTypes = {'TEXT_GEN', 'IMAGE_GEN', 'SPEECH_RECOG', 'OTHER'};
+    const validTypes = DefaultApiConfigs.supportedApiTypes;
     if (!validTypes.contains(serviceType)) {
-      throw ArgumentError('Invalid service type: $serviceType');
+      throw ArgumentError('无效的服务类型: $serviceType');
     }
   }
 
-  // 转换为数据库存储格式
+  /// 校验服务商
+  void _validateProvider() {
+    if (!DefaultApiConfigs.supportedApiProviders.contains(provider)) {
+      throw ArgumentError('不支持的服务商: $provider');
+    }
+  }
+
+  /// 获取完整 API URL
+  String getApiUrl(String endpointKey) {
+    return DefaultApiConfigs.getApiUrl(
+      provider,
+      endpointKey,
+      customBaseUrl: baseUrl,
+    );
+  }
+
+  /// 转换为数据库存储格式
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'serviceName': serviceName,
+      'provider': provider,
       'serviceType': serviceType,
       'baseUrl': baseUrl,
       'apiKey': apiKey,
       'modelName': modelName,
-      'maxTokens': maxTokens,
-      'temperature': temperature,
+      // 将 Map 转换为 JSON 字符串
+      'modelConfig': jsonEncode(modelConfig),
+      // 显式转换为 int 类型确保类型安全
       'isActive': isActive ? 1 : 0,
+      // 确保时间格式符合数据库要求
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
+  /// 从 JSON 创建实例
   factory AIApi.fromJson(Map<String, dynamic> json) => AIApi.fromMap(json);
 
+  /// 转换为 JSON
   Map<String, dynamic> toJson() => toMap();
+
+  /// 从数据库查询结果创建实例
+  factory AIApi.fromMap(Map<String, dynamic> map) {
+    return AIApi(
+      id: map['id'] as int?,
+      serviceName: map['serviceName'] as String,
+      provider: map['provider'] as String,
+      serviceType: map['serviceType'] as String,
+      baseUrl: map['baseUrl'] as String?,
+      apiKey: map['apiKey'] as String,
+      modelName: map['modelName'] as String?,
+      modelConfig: map['modelConfig'] != null
+          ? Map<String, dynamic>.from(jsonDecode(map['modelConfig']))
+          : {},
+      isActive: (map['isActive'] as int?) == 1,
+      createdAt: DateTime.parse(map['createdAt'] as String),
+      updatedAt: DateTime.parse(map['updatedAt'] as String),
+    );
+  }
+
+  /// 更新操作方法
+  AIApi copyWith({
+    String? serviceName,
+    String? provider,
+    String? serviceType,
+    String? baseUrl,
+    String? apiKey,
+    String? modelName,
+    Map<String, dynamic>? modelConfig,
+    bool? isActive,
+  }) {
+    return AIApi(
+      id: id,
+      serviceName: serviceName ?? this.serviceName,
+      provider: provider ?? this.provider,
+      serviceType: serviceType ?? this.serviceType,
+      baseUrl: baseUrl ?? this.baseUrl,
+      apiKey: apiKey ?? this.apiKey,
+      modelName: modelName ?? this.modelName,
+      modelConfig: modelConfig ?? this.modelConfig,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt,
+      updatedAt: DateTime.now().toUtc(),
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -86,65 +163,21 @@ class AIApi {
   @override
   int get hashCode => id.hashCode ^ serviceName.hashCode;
 
-  // 从数据库查询结果创建实例
-  factory AIApi.fromMap(Map<String, dynamic> map) {
-    return AIApi(
-      id: map['id'] as int?,
-      serviceName: map['serviceName'] as String,
-      serviceType: map['serviceType'] as String,
-      baseUrl: map['baseUrl'] as String?,
-      apiKey: map['apiKey'] as String,
-      modelName: map['modelName'] as String?,
-      maxTokens: map['maxTokens'] as int? ?? 1000,
-      temperature: (map['temperature'] as num?)?.toDouble() ?? 1.0,
-      isActive: (map['isActive'] as int?) == 1,
-      createdAt: DateTime.parse(map['createdAt'] as String),
-      updatedAt: DateTime.parse(map['updatedAt'] as String),
-    );
-  }
-
-  // 更新操作方法
-  AIApi copyWith({
-    String? serviceName,
-    String? serviceType,
-    String? baseUrl,
-    String? apiKey,
-    String? modelName,
-    int? maxTokens,
-    double? temperature,
-    bool? isActive,
-  }) {
-    return AIApi(
-      id: id,
-      serviceName: serviceName ?? this.serviceName,
-      serviceType: serviceType ?? this.serviceType,
-      baseUrl: baseUrl ?? this.baseUrl,
-      apiKey: apiKey ?? this.apiKey,
-      modelName: modelName ?? this.modelName,
-      maxTokens: maxTokens ?? this.maxTokens,
-      temperature: temperature ?? this.temperature,
-      isActive: isActive ?? this.isActive,
-      createdAt: createdAt,
-      updatedAt: DateTime.now().toUtc(),
-    );
-  }
-
   @override
   String toString() {
     return 'AIApi('
         'id: $id, '
         'serviceName: $serviceName, '
+        'provider: $provider, '
         'model: $modelName, '
         'isActive: $isActive'
         ')';
   }
 }
 
-// 定义一个简单的消息模型
+/// 聊天消息 Model
 class ChatMessage {
   final String content;
-
-  /// true 表示用户消息，false 表示 AI 回复
   final bool isUser;
 
   ChatMessage({required this.content, required this.isUser});

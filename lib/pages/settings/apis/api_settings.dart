@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
+import 'api_insert.dart';
+
 /// API设置
 class ApiSettings extends StatefulWidget {
   // API设置信息
@@ -48,14 +50,14 @@ class _ApiSettings extends State<ApiSettings> {
         theme: TDFabTheme.light,
         text: tr(LocaleKeys.settingPageApiSettingAddApi),
         onClick: () {
-          TDToast.showText(tr(LocaleKeys.thisFeatureIsUnderDevelopment),
-              context: context);
-          // Navigator.of(context).push(TDSlidePopupRoute(
-          //     modalBarrierColor: TDTheme.of(context).fontGyColor2,
-          //     slideTransitionFrom: SlideTransitionFrom.center,
-          //     builder: (context) {
-          //       return ApiInsert();
-          //     }));
+          // TDToast.showText(tr(LocaleKeys.thisFeatureIsUnderDevelopment),
+          //     context: context);
+          Navigator.of(context).push(TDSlidePopupRoute(
+              modalBarrierColor: TDTheme.of(context).fontGyColor2,
+              slideTransitionFrom: SlideTransitionFrom.center,
+              builder: (context) {
+                return ApiInsert();
+              }));
         },
       ),
     );

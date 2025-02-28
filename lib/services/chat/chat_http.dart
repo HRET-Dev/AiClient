@@ -31,8 +31,6 @@ class ChatHttp {
           'content': message,
         }
       ],
-      'max_tokens': api.maxTokens,
-      'temperature': api.temperature,
     };
 
     try {
