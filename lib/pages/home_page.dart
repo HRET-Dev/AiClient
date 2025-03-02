@@ -78,7 +78,12 @@ class HomePageState extends State<HomePage>
           controller: _tabController,
           children: [
             ChatPage(), // 聊天
-            Container(), // 历史
+            Center(
+              child: TDEmpty(
+                type: TDEmptyType.plain,
+                emptyText: tr(LocaleKeys.thisFeatureIsUnderDevelopment),
+              ),
+            ), // 历史
             SettingsPage(), // 设置
           ],
         ),

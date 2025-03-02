@@ -1,13 +1,12 @@
-// API 添加页面
-import 'dart:convert';
-
+import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/locale_keys.dart';
-import 'package:ai_client/models/ai_api.dart';
+import 'package:ai_client/repositories/ai_api__repository.dart';
+import 'package:ai_client/services/ai_api_service.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
-import '../../../common/utils/db/ai_api_repository.dart';
 import '../../../generated/default_api_configs.dart';
 
 // API 添加
@@ -45,8 +44,25 @@ class _ApiInsert extends State<ApiInsert> {
   /// 是否启用
   final _isActiveController = TextEditingController(text: '1');
 
-  /// AiApi 数据库操作封装
-  AIApiRepository repository = AIApiRepository();
+  /// AiApi 服务类
+  final AiApiService _aiApiService =
+      AiApiService(AiApiRepository(AppDatabase()));
+
+  /// 验证URL格式
+  String? validateUrl(String? value) {
+    if (value == null || value.isEmpty) {
+      return '请输入API地址';
+    }
+
+    // 简单URL格式验证
+    final urlPattern = RegExp(
+        r'^(http|https)://[a-zA-Z0-9]+([\-\.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,}(:[0-9]{1,5})?(\/.*)?$');
+
+    if (!urlPattern.hasMatch(value)) {
+      return '请输入有效的URL地址, 以http://或https://开头';
+    }
+    return null;
+  }
 
   /// 服务商选择器
   Widget buildProviderWithTitle(BuildContext context) {
@@ -195,21 +211,54 @@ class _ApiInsert extends State<ApiInsert> {
                   theme: TDButtonTheme.light,
                   text: tr(LocaleKeys.settingPageApiSettingAddApi),
                   onTap: () async {
+                    // 先检查必填项是否已选择
+                    if (_serviceNameController.text.isEmpty) {
+                      TDToast.showIconText('请输入服务名称',
+                          icon: TDIcons.error_circle, context: context);
+                      return;
+                    }
+                    // 验证URL并处理结果
+                    String? urlError = validateUrl(_baseUrlController.text);
+                    if (urlError != null) {
+                      TDToast.showIconText(urlError,
+                          icon: TDIcons.error_circle, context: context);
+                      return;
+                    }
+                    if (_providerController.text.isEmpty) {
+                      TDToast.showIconText('请选择服务商',
+                          icon: TDIcons.error_circle, context: context);
+                      return;
+                    }
+                    if (_serviceTypeController.text.isEmpty) {
+                      TDToast.showIconText('请选择服务类型',
+                          icon: TDIcons.error_circle, context: context);
+                      return;
+                    }
+                    if (_apiKeyController.text.isEmpty) {
+                      TDToast.showIconText('请输入API密钥',
+                          icon: TDIcons.error_circle, context: context);
+                      return;
+                    }
+
                     if (_formKey.currentState!.validate()) {
                       try {
-                        final api = AIApi(
-                          serviceName: _serviceNameController.text,
-                          provider: _providerController.text,
-                          serviceType: _serviceTypeController.text,
-                          baseUrl: _baseUrlController.text,
-                          apiKey: _apiKeyController.text,
-                          modelName: _modelNameController.text,
-                          modelConfig: _modelConfigController.text.isNotEmpty
-                              ? jsonDecode(_modelConfigController.text)
-                              : {},
-                          isActive: _isActiveController.text == '1',
+                        final api = AiApiCompanion(
+                          serviceName: Value(_serviceNameController.text),
+                          provider: Value(_providerController.text),
+                          serviceType: Value(_serviceTypeController.text),
+                          baseUrl: Value(_baseUrlController.text),
+                          apiKey: Value(_apiKeyController.text),
+                          modelName: Value(_modelNameController.text),
+                          modelConfig: Value(
+                              _modelConfigController.text.isNotEmpty
+                                  ? _modelConfigController.text
+                                  : '{}'),
+                          isActive:
+                              Value(_isActiveController.text == '1' ? 1 : 0),
+                          createdTime: Value(DateTime.now()),
+                          updatedTime: Value(DateTime.now()),
                         );
-                        await repository.addAIApi(api);
+                        _aiApiService.insertAiApi(api);
                         TDToast.showSuccess(
                             tr(LocaleKeys.settingPageApiSettingAddSuccess),
                             context: context);

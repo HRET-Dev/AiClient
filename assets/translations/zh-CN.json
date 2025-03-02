@@ -6,12 +6,14 @@
   "please_select": "请选择",
   "chat_page": {
     "input_hintText": "在这里输入消息...",
+    "thinking": "正在思考中...",
     "copy_success": "复制成功"
   },
   "settings_page": {
     "api_setting": {
       "api_manager": "API 管理",
       "add_api": "添加 API",
+      "delete_api": "删除 API",
       "add_success": "API 添加成功",
       "add_failed": "API 添加失败"
     },
@@ -20,7 +22,10 @@
       "select_language": "选择语言",
       "language_list": {
         "zh_CN": "简体中文",
-        "en_US": "英语（美国）"
+        "zh_TW": "繁体中文",
+        "en_US": "英语（美国）",
+        "ja_JP": "日语",
+        "ko_KR": "韩语"
       }
     }
   },

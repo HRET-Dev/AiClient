@@ -1,25 +1,30 @@
 import 'dart:core';
 
-import 'package:ai_client/common/utils/db/database_helper.dart';
 import 'package:ai_client/common/utils/loading_indicator.dart';
-import 'package:ai_client/generated/default_api_configs.dart';
-import 'package:ai_client/models/ai_api.dart';
+import 'package:ai_client/database/app_database.dart';
+import 'package:ai_client/generated/locale_keys.dart';
+import 'package:ai_client/repositories/ai_api__repository.dart';
+import 'package:ai_client/services/ai_api_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 /// API 列表
 class ApiList extends StatefulWidget {
+  const ApiList({super.key});
+
   @override
   State<StatefulWidget> createState() => _ApiListState();
 }
 
 /// API 列表的状态管理
 class _ApiListState extends State<ApiList> {
-  // 获取数据库实例
-  final dbHelper = DatabaseHelper();
+  /// AiApi 服务类
+  final AiApiService _aiApiService =
+      AiApiService(AiApiRepository(AppDatabase()));
 
   /// API信息列表
-  List<Map<String, dynamic>> _dataList = [];
+  List<AiApiData> _dataList = [];
 
   /// 是否显示加载中状态
   bool _isLoading = true;
@@ -43,20 +48,7 @@ class _ApiListState extends State<ApiList> {
       setState(() => _isLoading = true);
 
       // 查询数据
-      var data = await dbHelper.query(AIApi.tableName);
-
-      // 空数据添加默认数据
-      if (data.isEmpty) {
-        // 获取默认模型信息
-        var defaultApiConfig = DefaultApiConfigs.defaultApiConfig;
-        // 转换为 Map 列表
-        List<Map<String, dynamic>> apiMaps =
-            defaultApiConfig.map((api) => api.toMap()).toList();
-        // 添加默认数据到数据库
-        await dbHelper.insertMultiple(AIApi.tableName, apiMaps);
-        // 刷新数据
-        data = await dbHelper.query(AIApi.tableName);
-      }
+      var data = await _aiApiService.initDefaultAiApiConfig();
 
       if (mounted) {
         setState(() {
@@ -86,22 +78,22 @@ class _ApiListState extends State<ApiList> {
           return TDCellGroup(
             cells: _dataList
                 .map((e) => TDCell(
-                      title: e['serviceName'], // 使用服务名称
-                      note: e['note'], // 使用备注
-                      description: e['description'], // 使用描述
+                      title: e.serviceName, // 使用服务名称
+                      description:
+                          "${e.createdTime.year}-${e.createdTime.month.toString().padLeft(2, '0')}-${e.createdTime.day.toString().padLeft(2, '0')} ${e.createdTime.hour.toString().padLeft(2, '0')}:${e.createdTime.minute.toString().padLeft(2, '0')}:${e.createdTime.second.toString().padLeft(2, '0')}", // 使用年月日时分秒格式展示时间
                     ))
                 .toList(),
             builder: (context, cell, index) {
               return TDSwipeCell(
-                slidableKey: ValueKey(_dataList[index]['id']),
+                slidableKey: ValueKey(_dataList[index].id),
                 groupTag: 'hret',
                 right: TDSwipeCellPanel(
                   extentRatio: 60 / screenWidth,
                   onDismissed: (context) {
                     // 获取数据ID
-                    var dataId = _dataList[index]['id'];
+                    var dataId = _dataList[index].id;
                     // 删除对应的数据
-                    dbHelper.delete(AIApi.tableName, where: 'id = $dataId');
+                    _aiApiService.deleteAiApiById(dataId);
                     // 删除操作
                     _dataList.removeAt(index);
                     // 更新长度
@@ -110,12 +102,12 @@ class _ApiListState extends State<ApiList> {
                   children: [
                     TDSwipeCellAction(
                       backgroundColor: TDTheme.of(context).errorColor6,
-                      label: '删除',
+                      label: tr(LocaleKeys.settingPageApiSettingDeleteApi),
                       onPressed: (context) {
                         // 获取数据ID
-                        var dataId = _dataList[index]['id'];
+                        var dataId = _dataList[index].id;
                         // 删除对应的数据
-                        dbHelper.delete(AIApi.tableName, where: 'id = $dataId');
+                        _aiApiService.deleteAiApiById(dataId);
                         // 删除操作
                         _dataList.removeAt(index);
                         // 更新长度

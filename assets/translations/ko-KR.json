@@ -1,0 +1,48 @@
+{
+  "Chat": "채팅",
+  "History": "기록",
+  "Settings": "설정",
+  "this_feature_is_under_development": "이 기능은 개발 중입니다",
+  "please_select": "선택해 주세요",
+  "chat_page": {
+    "input_hintText": "메시지를 입력하세요...",
+    "thinking": "생각하는 중...",
+    "copy_success": "복사 성공"
+  },
+  "settings_page": {
+    "api_setting": {
+      "api_manager": "API 관리",
+      "add_api": "API 추가",
+      "delete_api": "API 삭제",
+      "add_success": "API 추가 성공",
+      "add_failed": "API 추가 실패"
+    },
+    "language_setting": {
+      "language_button_text": "언어",
+      "select_language": "언어 선택",
+      "language_list": {
+        "zh_CN": "중국어 간체",
+        "zh_TW": "중국어 번체",
+        "en_US": "영어(미국)",
+        "ja_JP": "일본어",
+        "ko_KR": "한국어"
+      }
+    }
+  },
+  "ai_api_model": {
+    "api_name": "API 이름",
+    "enter_api_name": "API 이름 입력",
+    "api_provider": "API 제공자",
+    "select_api_provider": "API 제공자",
+    "api_type": "API 서비스 유형",
+    "select_api_type": "API 서비스 유형",
+    "api_base_url": "API 주소",
+    "enter_api_base_url": "API 주소 입력",
+    "api_key": "API 키",
+    "enter_api_key": "API 키 입력",
+    "model_name": "모델 이름",
+    "enter_model_name": "모델 이름 입력",
+    "model_config": "모델 설정",
+    "enter_model_config": "모델 설정 입력(JSON) 선택사항"
+  }
+}

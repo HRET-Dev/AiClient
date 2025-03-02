@@ -1,4 +1,5 @@
-import '../models/ai_api.dart';
+import 'package:ai_client/database/app_database.dart';
+import 'package:drift/drift.dart';
 
 /// API 配置类
 class DefaultApiConfigs {
@@ -26,16 +27,22 @@ class DefaultApiConfigs {
   };
 
   /// 默认模型配置 API 配置列表
-  static List<AIApi> defaultApiConfig = [
-    AIApi(
-      serviceName: '默认模型配置 OpenAI GPT-4o',
-      provider: 'OpenAI',
-      serviceType: 'TEXT_GEN',
-      baseUrl: 'https://free.zeroai.chat/v1/chat/completions',
-      apiKey: 'hret',
-      modelName: 'gpt-4o',
-    ),
-  ];
+  static List<AiApiCompanion> defaultApiConfig() {
+    return [
+      AiApiCompanion(
+        serviceName: const Value('默认模型配置 OpenAI GPT-4o'),
+        provider: const Value('OpenAI'),
+        serviceType: const Value('TEXT_GEN'),
+        baseUrl: const Value('https://free.zeroai.chat/v1/chat/completions'),
+        apiKey: const Value('hret'),
+        modelName: const Value('gpt-4o'),
+        modelConfig: const Value('{}'),
+        isActive: const Value(1),
+        createdTime: Value(DateTime.now()),
+        updatedTime: Value(DateTime.now()),
+      ),
+    ];
+  }
 
   /// 获取完整API路径的通用方法
   /// [provider] 服务商名称

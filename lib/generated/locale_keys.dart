@@ -19,6 +19,9 @@ abstract class LocaleKeys {
   /// 聊天页底部输入框提示值
   static const chatPageInputHintText = 'chat_page.input_hintText';
 
+  /// 聊天页聊天回复等待提示值
+  static const chatPageThinking = 'chat_page.thinking';
+
   /// 聊天页聊天内容复制成功提示信息
   static const chatPageCopySuccess = 'chat_page.copy_success';
 
@@ -29,6 +32,10 @@ abstract class LocaleKeys {
   /// 设置页API管理添加 API 提示信息
   static const settingPageApiSettingAddApi =
       'settings_page.api_setting.add_api';
+
+  /// 设置页API管理删除 API 提示信息
+  static const settingPageApiSettingDeleteApi =
+      'settings_page.api_setting.delete_api';
 
   /// 设置页API管理添加 API 成功提示信息
   static const settingPageApiSettingAddSuccess =

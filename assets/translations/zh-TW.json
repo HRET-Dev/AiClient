@@ -1,0 +1,48 @@
+{
+  "Chat": "聊天",
+  "History": "歷史",
+  "Settings": "設置",
+  "this_feature_is_under_development": "該功能正在開發中",
+  "please_select": "請選擇",
+  "chat_page": {
+    "input_hintText": "在這裡輸入訊息...",
+    "thinking": "正在思考中...",
+    "copy_success": "複製成功"
+  },
+  "settings_page": {
+    "api_setting": {
+      "api_manager": "API 管理",
+      "add_api": "添加 API",
+      "delete_api": "刪除 API",
+      "add_success": "API 添加成功",
+      "add_failed": "API 添加失敗"
+    },
+    "language_setting": {
+      "language_button_text": "語言",
+      "select_language": "選擇語言",
+      "language_list": {
+        "zh_CN": "簡體中文",
+        "zh_TW": "繁體中文",
+        "en_US": "英語（美國）",
+        "ja_JP": "日文",
+        "ko_KR": "韓語"
+      }
+    }
+  },
+  "ai_api_model": {
+    "api_name": "API 名稱",
+    "enter_api_name": "輸入 API 名稱",
+    "api_provider": "API 服務商",
+    "select_api_provider": "API 服務商",
+    "api_type": "API 服務類型",
+    "select_api_type": "API 服務類型",
+    "api_base_url": "API 地址",
+    "enter_api_base_url": "輸入 API 地址",
+    "api_key": "API 密鑰",
+    "enter_api_key": "輸入 API 密鑰",
+    "model_name": "模型名稱",
+    "enter_model_name": "輸入模型名稱",
+    "model_config": "模型配置",
+    "enter_model_config": "輸入模型配置（JSON）非必填"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "Chat": "チャット",
+  "History": "履歴",
+  "Settings": "設定",
+  "this_feature_is_under_development": "この機能は開発中です",
+  "please_select": "選択してください",
+  "chat_page": {
+    "input_hintText": "メッセージを入力してください...",
+    "thinking": "考え中...",
+    "copy_success": "コピー成功"
+  },
+  "settings_page": {
+    "api_setting": {
+      "api_manager": "API 管理",
+      "add_api": "API を追加",
+      "delete_api": "API を削除",
+      "add_success": "API 追加成功",
+      "add_failed": "API 追加失敗"
+    },
+    "language_setting": {
+      "language_button_text": "言語",
+      "select_language": "言語を選択",
+      "language_list": {
+        "zh_CN": "簡体中国語",
+        "zh_TW": "繁体中国語",
+        "en_US": "英語（米国）",
+        "ja_JP": "日本語",
+        "ko_KR": "韓国語"
+      }
+    }
+  },
+  "ai_api_model": {
+    "api_name": "API 名",
+    "enter_api_name": "API 名を入力",
+    "api_provider": "API プロバイダー",
+    "select_api_provider": "API プロバイダー",
+    "api_type": "API サービスタイプ",
+    "select_api_type": "API サービスタイプ",
+    "api_base_url": "API アドレス",
+    "enter_api_base_url": "API アドレスを入力",
+    "api_key": "API キー",
+    "enter_api_key": "API キーを入力",
+    "model_name": "モデル名",
+    "enter_model_name": "モデル名を入力",
+    "model_config": "モデル設定",
+    "enter_model_config": "モデル設定を入力（JSON）任意"
+  }
+}

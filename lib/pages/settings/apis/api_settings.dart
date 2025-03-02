@@ -40,7 +40,7 @@ class _ApiSettings extends State<ApiSettings> {
       body: Column(
         children: [
           // API 列表
-          ApiList(),
+          ApiList(key: UniqueKey()),
         ],
       ),
       // 内容居中
@@ -57,6 +57,10 @@ class _ApiSettings extends State<ApiSettings> {
               slideTransitionFrom: SlideTransitionFrom.center,
               builder: (context) {
                 return ApiInsert();
+              },
+              close: () {
+                // 关闭前刷新列表
+                setState(() {});
               }));
         },
       ),

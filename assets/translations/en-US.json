@@ -6,13 +6,15 @@
   "please_select": "Please select",
   "chat_page": {
     "input_hintText": "Enter message here...",
+    "thinking": "Thinking...",
     "copy_success": "Copied to clipboard"
   },
   "settings_page": {
     "api_setting": {
       "api_manager": "API Manager",
       "add_api": "Add API",
-      "add_success": "API added successfully",
+      "delete_api": "Delete API",
+      "add_success": "API added success",
       "add_failed": "API adding failed"
     },
     "language_setting": {
@@ -20,7 +22,10 @@
       "select_language": "Select Language",
       "language_list": {
         "zh_CN": "Simplified Chinese",
-        "en_US": "English (US)"
+        "zh_TW": "Traditional Chinese",
+        "en_US": "English (US)",
+        "ja_JP": "Japanese",
+        "ko_KR": "Korean"
       }
     }
   },
