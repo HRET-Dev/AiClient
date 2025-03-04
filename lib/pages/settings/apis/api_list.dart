@@ -79,8 +79,7 @@ class _ApiListState extends State<ApiList> {
             cells: _dataList
                 .map((e) => TDCell(
                       title: e.serviceName, // 使用服务名称
-                      description:
-                          "${e.createdTime.year}-${e.createdTime.month.toString().padLeft(2, '0')}-${e.createdTime.day.toString().padLeft(2, '0')} ${e.createdTime.hour.toString().padLeft(2, '0')}:${e.createdTime.minute.toString().padLeft(2, '0')}:${e.createdTime.second.toString().padLeft(2, '0')}", // 使用年月日时分秒格式展示时间
+                      description: DateFormat('yyyy-MM-dd HH:mm:ss').format(e.createdTime)
                     ))
                 .toList(),
             builder: (context, cell, index) {

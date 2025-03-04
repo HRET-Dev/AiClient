@@ -20,62 +20,38 @@ class $AiApiTable extends AiApi with TableInfo<$AiApiTable, AiApiData> {
   static const VerificationMeta _serviceNameMeta =
       const VerificationMeta('serviceName');
   @override
-  late final GeneratedColumn<String> serviceName =
-      GeneratedColumn<String>('service_name', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
+  late final GeneratedColumn<String> serviceName = GeneratedColumn<String>(
+      'service_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _providerMeta =
       const VerificationMeta('provider');
   @override
-  late final GeneratedColumn<String> provider =
-      GeneratedColumn<String>('provider', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
+  late final GeneratedColumn<String> provider = GeneratedColumn<String>(
+      'provider', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _serviceTypeMeta =
       const VerificationMeta('serviceType');
   @override
-  late final GeneratedColumn<String> serviceType =
-      GeneratedColumn<String>('service_type', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
+  late final GeneratedColumn<String> serviceType = GeneratedColumn<String>(
+      'service_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _baseUrlMeta =
       const VerificationMeta('baseUrl');
   @override
-  late final GeneratedColumn<String> baseUrl =
-      GeneratedColumn<String>('base_url', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
+  late final GeneratedColumn<String> baseUrl = GeneratedColumn<String>(
+      'base_url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _apiKeyMeta = const VerificationMeta('apiKey');
   @override
-  late final GeneratedColumn<String> apiKey =
-      GeneratedColumn<String>('api_key', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
+  late final GeneratedColumn<String> apiKey = GeneratedColumn<String>(
+      'api_key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _modelNameMeta =
       const VerificationMeta('modelName');
   @override
-  late final GeneratedColumn<String> modelName =
-      GeneratedColumn<String>('model_name', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
+  late final GeneratedColumn<String> modelName = GeneratedColumn<String>(
+      'model_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _modelConfigMeta =
       const VerificationMeta('modelConfig');
   @override

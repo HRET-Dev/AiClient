@@ -54,12 +54,12 @@ class _ApiInsert extends State<ApiInsert> {
       return '请输入API地址';
     }
 
-    // 简单URL格式验证
+    // 简单URL格式验证 支持 http/https、域名/IP 
     final urlPattern = RegExp(
-        r'^(http|https)://[a-zA-Z0-9]+([\-\.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,}(:[0-9]{1,5})?(\/.*)?$');
+        r'^(http|https):\/\/([a-zA-Z0-9.-]+(:[0-9]+)?)(\/.*)?$');
 
     if (!urlPattern.hasMatch(value)) {
-      return '请输入有效的URL地址, 以http://或https://开头';
+      return '无效的URL格式';
     }
     return null;
   }
@@ -234,8 +234,8 @@ class _ApiInsert extends State<ApiInsert> {
                           icon: TDIcons.error_circle, context: context);
                       return;
                     }
-                    if (_apiKeyController.text.isEmpty) {
-                      TDToast.showIconText('请输入API密钥',
+                    if (_modelNameController.text.isEmpty) {
+                      TDToast.showIconText('请输入模型名称',
                           icon: TDIcons.error_circle, context: context);
                       return;
                     }
@@ -258,9 +258,19 @@ class _ApiInsert extends State<ApiInsert> {
                           createdTime: Value(DateTime.now()),
                           updatedTime: Value(DateTime.now()),
                         );
-                        _aiApiService.insertAiApi(api);
+
+                        // 插入数据 
+                        _aiApiService.insertAiApi(api).then(
+                          (value) {
+                            if (!value) {
+                              // 插入失败抛出异常
+                              throw Exception('插入失败');
+                            }
+                          },
+                        );
+
                         TDToast.showSuccess(
-                            tr(LocaleKeys.settingPageApiSettingAddSuccess),
+                          tr(LocaleKeys.settingPageApiSettingAddSuccess),
                             context: context);
                         Navigator.pop(context);
                       } catch (e) {

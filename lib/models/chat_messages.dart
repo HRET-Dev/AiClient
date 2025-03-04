@@ -16,11 +16,16 @@ class ChatMessages extends Table {
 
 /// 聊天消息 Model
 class ChatMessage {
+  /// 消息内容
   final String content;
+  /// 是否为用户消息
   final bool isUser;
+  /// 创建时间  
+  final DateTime createdTime;
 
   ChatMessage({
     required this.content,
     required this.isUser,
+    required this.createdTime,
   });
 }

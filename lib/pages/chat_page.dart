@@ -28,8 +28,11 @@ class ChatPageState extends State<ChatPage> {
   final AiApiService _aiApiService =
       AiApiService(AiApiRepository(AppDatabase()));
 
-  // 加载到的 API 配置
-  AiApiData? _apiConfig;
+  // 加载到的 API 配置列表
+  late List<AiApiData> _apiConfig;
+
+  // 当前正在使用的 API 配置
+  AiApiData? _currentApi;
 
   // 是否正在等待回复
   bool _isWaitingResponse = false;
@@ -45,7 +48,7 @@ class ChatPageState extends State<ChatPage> {
     final apis = await _aiApiService.initDefaultAiApiConfig();
     if (apis.isNotEmpty) {
       setState(() {
-        _apiConfig = apis.first;
+        _apiConfig = apis;
       });
     } else {
       if (mounted) {
@@ -115,7 +118,8 @@ class ChatPageState extends State<ChatPage> {
           borderRadius: BorderRadius.circular(8),
         ),
         child: MarkdownBody(
-          data: message.content,
+          data: '${message.content}\n\n${DateFormat('yyyy-MM-dd HH:mm:ss').format(message
+          .createdTime)}',
           styleSheet: MarkdownStyleSheet(
             p: TextStyle(fontSize: 16, color: Colors.black),
             strong: TextStyle(fontWeight: FontWeight.bold),
@@ -135,14 +139,20 @@ class ChatPageState extends State<ChatPage> {
     if (_isWaitingResponse || _messageController.text.isEmpty) return;
 
     // 判断是否有可用 API 配置信息
-    if (_apiConfig == null) {
+    if (_apiConfig.isEmpty) {
       TDToast.showText('无可用 API 配置信息', context: context);
       return;
     }
 
+    // 当前没有 API 配置信息时，默认使用第一条
+    _currentApi ??= _apiConfig[0];
+
+    // 存储一个新的消息列表 防止历史消息被覆盖
+    List<ChatMessage> newMessages = List.from(_messages);
+
     final userMessage = _messageController.text;
     setState(() {
-      _messages.add(ChatMessage(content: userMessage, isUser: true));
+      _messages.add(ChatMessage(content: userMessage, isUser: true, createdTime: DateTime.now()));
       _messageController.clear();
       _isWaitingResponse = true; // 设置等待状态
     });
@@ -150,7 +160,7 @@ class ChatPageState extends State<ChatPage> {
 
     // 添加一个临时的"加载中"消息
     final loadingMessage =
-        ChatMessage(content: tr(LocaleKeys.chatPageThinking), isUser: false);
+        ChatMessage(content: tr(LocaleKeys.chatPageThinking), isUser: false, createdTime: DateTime.now());
     setState(() {
       _messages.add(loadingMessage);
     });
@@ -158,8 +168,9 @@ class ChatPageState extends State<ChatPage> {
 
     try {
       final response = await _chatHttp.sendChatRequest(
-        api: _apiConfig!,
+        api: _currentApi!,
         message: userMessage,
+        historys: newMessages
       );
       // 根据实际返回数据解析 AI 回复内容
       final aiReply =
@@ -169,7 +180,7 @@ class ChatPageState extends State<ChatPage> {
         final loadingIndex = _messages.indexOf(loadingMessage);
         if (loadingIndex != -1) {
           _messages[loadingIndex] =
-              ChatMessage(content: aiReply, isUser: false);
+              ChatMessage(content: aiReply, isUser: false, createdTime: DateTime.now());
         }
         _isWaitingResponse = false; // 清除等待状态
       });
@@ -189,7 +200,7 @@ class ChatPageState extends State<ChatPage> {
         final loadingIndex = _messages.indexOf(loadingMessage);
         if (loadingIndex != -1) {
           _messages[loadingIndex] =
-              ChatMessage(content: errorMessage, isUser: false);
+              ChatMessage(content: errorMessage, isUser: false, createdTime: DateTime.now());
         }
         _isWaitingResponse = false; // 清除等待状态
       });

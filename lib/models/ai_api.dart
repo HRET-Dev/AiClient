@@ -6,22 +6,22 @@ class AiApi extends Table {
   late final id = integer().autoIncrement()();
 
   /// 服务名称
-  late final serviceName = text().withLength(min: 1)();
+  late final serviceName = text()();
 
   /// 服务提供商
-  late final provider = text().withLength(min: 1)();
+  late final provider = text()();
 
   /// 服务类型
-  late final serviceType = text().withLength(min: 1)();
+  late final serviceType = text()();
 
   /// 基础URL地址
-  late final baseUrl = text().withLength(min: 1)();
+  late final baseUrl = text()();
 
   /// API密钥
-  late final apiKey = text().withLength(min: 1)();
+  late final apiKey = text()();
 
   /// 模型名称
-  late final modelName = text().withLength(min: 1)();
+  late final modelName = text()();
 
   /// 模型配置(JSON格式)
   late final modelConfig = text()();
