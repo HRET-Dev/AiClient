@@ -28,6 +28,7 @@ dependencies:
   drift: ^2.25.1
   drift_flutter: ^0.2.4
   window_manager: ^0.4.3
+  flutter_svg: ^2.0.17
 
 dev_dependencies:
   flutter_test:

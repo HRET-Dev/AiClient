@@ -17,7 +17,7 @@ class ChatMessages extends Table {
 /// 聊天消息 Model
 class ChatMessage {
   /// 消息内容
-  final String content;
+  String content;
   /// 是否为用户消息
   final bool isUser;
   /// 创建时间  

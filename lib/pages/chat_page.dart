@@ -22,7 +22,7 @@ class ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
 
   // 使用 ChatHttp 调用 OpenAI 接口
-  final ChatHttp _chatHttp = ChatHttp(Dio());
+  final ChatHttp _chatHttp = ChatHttp();
 
   /// AiApi 服务类
   final AiApiService _aiApiService =
@@ -65,12 +65,18 @@ class ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
+  /// 滚动到最底部
   void _scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent + 60,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    // 添加短暂延迟，确保布局已更新
+    Future.delayed(Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   /// 构建输入区域
@@ -156,34 +162,57 @@ class ChatPageState extends State<ChatPage> {
       _messageController.clear();
       _isWaitingResponse = true; // 设置等待状态
     });
+    // 滚动到最底部
     _scrollToBottom();
 
-    // 添加一个临时的"加载中"消息
-    final loadingMessage =
+    // 默认加载中
+    final aiMessage =
         ChatMessage(content: tr(LocaleKeys.chatPageThinking), isUser: false, createdTime: DateTime.now());
     setState(() {
-      _messages.add(loadingMessage);
+      _messages.add(aiMessage);
     });
-    _scrollToBottom();
 
     try {
-      final response = await _chatHttp.sendChatRequest(
+      final responseStream = await _chatHttp.sendStreamChatRequest(
         api: _currentApi!,
         message: userMessage,
         historys: newMessages
       );
-      // 根据实际返回数据解析 AI 回复内容
-      final aiReply =
-          response.data['choices']?[0]['message']['content'] ?? '无回复';
-      setState(() {
-        // 找到加载消息的索引并替换它
-        final loadingIndex = _messages.indexOf(loadingMessage);
-        if (loadingIndex != -1) {
-          _messages[loadingIndex] =
-              ChatMessage(content: aiReply, isUser: false, createdTime: DateTime.now());
+
+      // 用于累积AI回复的内容
+      String accumulatedContent = "";
+
+      // 处理流
+      responseStream.listen(
+        (content) {
+          // 累积内容
+          accumulatedContent += content;
+          
+          // 更新消息内容
+          setState(() {
+            aiMessage.content = accumulatedContent;
+          });
+          // 滚动到最底部
+          _scrollToBottom();
+        },
+        onDone: () {
+          // 流结束时的处理
+          setState(() {
+            _isWaitingResponse = false; // 清除等待状态
+          });
+          // 滚动到最底部
+          _scrollToBottom();
+        },
+        onError: (error) {
+          // 错误处理
+          setState(() {
+            aiMessage.content = "发生错误: $error";
+            _isWaitingResponse = false; // 清除等待状态
+          });
+          // 滚动到最底部
+          _scrollToBottom();
         }
-        _isWaitingResponse = false; // 清除等待状态
-      });
+      );
     } catch (e) {
       // 控制台打印错误信息
       print('请求出错: $e');
@@ -197,7 +226,7 @@ class ChatPageState extends State<ChatPage> {
       }
       setState(() {
         // 找到加载消息的索引并替换它
-        final loadingIndex = _messages.indexOf(loadingMessage);
+        final loadingIndex = _messages.indexOf(aiMessage);
         if (loadingIndex != -1) {
           _messages[loadingIndex] =
               ChatMessage(content: errorMessage, isUser: false, createdTime: DateTime.now());
@@ -205,7 +234,6 @@ class ChatPageState extends State<ChatPage> {
         _isWaitingResponse = false; // 清除等待状态
       });
     }
-    _scrollToBottom();
   }
 
   @override
