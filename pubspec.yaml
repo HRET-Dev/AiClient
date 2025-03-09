@@ -41,5 +41,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/windows/sqlite3.dll  # 添加 DLL 到资源声明
     - assets/translations/  # 添加 多语言文件目录 到资源声明

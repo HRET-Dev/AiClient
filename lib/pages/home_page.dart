@@ -1,4 +1,3 @@
-import 'package:ai_client/common/utils/maintain.dart';
 import 'package:ai_client/generated/locale_keys.dart';
 import 'package:ai_client/pages/chat_page.dart';
 import 'package:ai_client/pages/settings/settings_page.dart';
@@ -79,7 +78,12 @@ class HomePageState extends State<HomePage>
           controller: _tabController,
           children: [
             ChatPage(), // 聊天
-            UnderMaintenanceScreen(), // 历史
+            Center(
+              child: TDEmpty(
+                type: TDEmptyType.plain,
+                emptyText: tr(LocaleKeys.thisFeatureIsUnderDevelopment),
+              ),
+            ), // 历史
             SettingsPage(), // 设置
           ],
         ),
