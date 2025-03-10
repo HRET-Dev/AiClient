@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:ai_client/database/app_database.dart';
 import 'package:drift/drift.dart';
 import 'dart:convert';
@@ -84,6 +86,15 @@ class DefaultApiConfigs {
     return authConfigs[provider] ?? {'type': 'bearer'};
   }
 
+  /// 生成随机字符串
+  static String _generateRandomString(int length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    return String.fromCharCodes(
+      List.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length)))
+    );
+  }
+
   /// 默认模型配置 API 配置列表
   static List<AiApiCompanion> defaultApiConfig() {
     return [
@@ -92,7 +103,7 @@ class DefaultApiConfigs {
         provider: const Value('OpenAI'),
         serviceType: const Value('TEXT_GEN'),
         baseUrl: const Value('https://free.zeroai.chat'),
-        apiKey: const Value('hret'),
+        apiKey: Value(_generateRandomString(32)),
         modelName: const Value('gpt-4o'),
         modelConfig: const Value('{}'),
         isActive: const Value(1),

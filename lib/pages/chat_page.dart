@@ -86,26 +86,48 @@ class ChatPageState extends State<ChatPage> {
       minimum: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 8,
       ),
-      child: TDInput(
-        controller: _messageController,
-        width: MediaQuery.of(context).size.width - 20,
-        backgroundColor: Colors.white,
-        hintText: tr(LocaleKeys.chatPageInputHintText),
-        rightBtn: _messageController.text.isEmpty
-            ? Icon(
-                TDIcons.arrow_up_circle_filled,
-                color: TDTheme.of(context).grayColor5,
-              )
-            : Icon(
-                TDIcons.arrow_up_circle_filled,
-                color: TDTheme.of(context).brandColor6,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(color: Colors.grey.shade300, width: 0.5),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                decoration: InputDecoration(
+                  hintText: tr(LocaleKeys.chatPageInputHintText),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                onChanged: (text) {
+                  setState(() {});
+                },
+                onSubmitted: (_) => _inputConfirm(),
+                textInputAction: TextInputAction.send,
               ),
-        onBtnTap: _inputConfirm,
-        onEditingComplete: _inputConfirm,
-        onChanged: (text) {
-          setState(() {});
-        },
-        needClear: false,
+            ),
+            SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                Icons.send_rounded,
+                color: _messageController.text.isEmpty
+                    ? Colors.grey
+                    : Theme.of(context).primaryColor,
+              ),
+              onPressed: _inputConfirm,
+            ),
+          ],
+        ),
       ),
     );
   }
