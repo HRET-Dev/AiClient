@@ -1,5 +1,5 @@
 import 'package:ai_client/generated/locale_keys.dart';
-import 'package:ai_client/pages/chat_page.dart';
+import 'package:ai_client/pages/chat/chat_page.dart';
 import 'package:ai_client/pages/settings/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -10,85 +10,148 @@ class HomePage extends StatefulWidget {
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class HomePageState extends State<HomePage> {
+  /// 导航栏当前选中项
+  int selectedIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this); // 正确初始化控制器
-  }
+  /// 导航栏标签显示状态
+  NavigationRailLabelType labelType = NavigationRailLabelType.all;
 
-  @override
-  void dispose() {
-    _tabController.dispose(); // 需要释放资源
-    super.dispose();
-  }
-
-  Widget _buildItemWithIcon() {
-    final tabs = [
-      TDTab(
-        text: tr(LocaleKeys.chat),
-        icon: Icon(
-          TDIcons.chat_bubble_1,
-          size: 18,
+  /// 移动端底部导航栏 NavigationBar
+  Widget _mobileBottomNavigationBar() {
+    return NavigationBar(
+      selectedIndex: selectedIndex,
+      onDestinationSelected: (int index) {
+        setState(() {
+          selectedIndex = index;
+        });
+      },
+      destinations: [
+        NavigationDestination(
+          icon: Icon(
+            Icons.chat_bubble_outline,
+            size: 18,
+          ),
+          label: tr(LocaleKeys.chat),
         ),
-      ),
-      TDTab(
-        text: tr(LocaleKeys.history),
-        icon: Icon(
-          TDIcons.chat_bubble_history,
-          size: 18,
+        NavigationDestination(
+          icon: Icon(
+            Icons.history,
+            size: 20,
+          ),
+          label: tr(LocaleKeys.history),
         ),
-      ),
-      TDTab(
-        text: tr(LocaleKeys.settings),
-        icon: const Icon(
-          TDIcons.setting,
-          size: 18,
+        NavigationDestination(
+          icon: Icon(
+            Icons.settings,
+            size: 20,
+          ),
+          label: tr(LocaleKeys.settings),
         ),
-      ),
-    ];
-
-    return TDTabBar(
-      tabs: tabs,
-      controller: _tabController, // 使用成员变量控制器
-      backgroundColor: Colors.white,
-      showIndicator: true,
+      ],
     );
   }
 
-  // 为导航栏添加底部安全距离
-  Widget _buildBottomBarWithSafeArea() {
-    return SafeArea(
-      top: false, // 不需要顶部安全区域
-      minimum: const EdgeInsets.only(bottom: 4), // 最小保持4dp的间距
-      child: _buildItemWithIcon(),
+  /// 桌面端侧边导航栏 NavigationRail
+  Widget _desktopNavigationRail() {
+    return Column(
+      children: [
+        Expanded(
+          child: NavigationRail(
+            selectedIndex: selectedIndex,
+            labelType: labelType,
+            onDestinationSelected: (int index) {
+              setState(() {
+                selectedIndex = index;
+              });
+            },
+            destinations: [
+              NavigationRailDestination(
+                icon: Icon(Icons.chat_bubble_outline),
+                label: Text(tr(LocaleKeys.chat)),
+                padding: EdgeInsets.only(top: 5, bottom: 5),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.history),
+                label: Text(tr(LocaleKeys.history)),
+                padding: EdgeInsets.only(bottom: 5),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.settings),
+                label: Text(tr(LocaleKeys.settings)),
+                padding: EdgeInsets.only(bottom: 5),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.dehaze),
+          onPressed: () {
+            /// 更改桌面端导航栏的标签显示状态
+            setState(() {
+              labelType = labelType == NavigationRailLabelType.all
+                  ? NavigationRailLabelType.none
+                  : NavigationRailLabelType.all;
+            });
+          },
+        ),
+        SizedBox(height: 10),
+      ],
+    );
+  }
+
+  /// IndexedStack 用于切换页面
+  Widget _buildIndexedStack() {
+    return IndexedStack(
+      index: selectedIndex,
+      children: [
+        ChatPage(), // 聊天
+        Center(
+          child: TDEmpty(
+            type: TDEmptyType.plain,
+            emptyText: tr(LocaleKeys.thisFeatureIsUnderDevelopment),
+          ),
+        ), // 历史
+        SettingsPage(), // 设置
+      ],
+    );
+  }
+
+  /// 移动端布局
+  Widget _mobileLayout() {
+    return Scaffold(
+      body: _buildIndexedStack(),
+      bottomNavigationBar: _mobileBottomNavigationBar(),
+    );
+  }
+
+  /// 桌面端布局
+  Widget _desktopLayout() {
+    return Scaffold(
+      body: SafeArea(
+          child: Row(
+        children: [
+          _desktopNavigationRail(),
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(
+            child: _buildIndexedStack(),
+          ),
+        ],
+      )),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        minimum: const EdgeInsets.only(top: 4), // 最小保持4dp的间距
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            ChatPage(), // 聊天
-            Center(
-              child: TDEmpty(
-                type: TDEmptyType.plain,
-                emptyText: tr(LocaleKeys.thisFeatureIsUnderDevelopment),
-              ),
-            ), // 历史
-            SettingsPage(), // 设置
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomBarWithSafeArea(),
-    );
+    // 根据当前应用的宽度来决定使用哪种布局
+    final double screenWidth = MediaQuery.of(context).size.width;
+
+    if (screenWidth <= 600) {
+      // 如果宽度小于600dp，则使用移动端布局
+      return _mobileLayout();
+    } else {
+      // 否则使用桌面端布局
+      return _desktopLayout();
+    }
   }
 }

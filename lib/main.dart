@@ -16,12 +16,12 @@ void main() async {
 
     // 窗口设置
     WindowOptions windowOptions = const WindowOptions(
-      size: Size(800, 630),
       // 初始窗口大小
-      minimumSize: Size(360, 630),
+      size: Size(800, 630),
       // 最小窗口大小
-      center: true,
+      minimumSize: Size(330, 400),
       // 窗口居中显示
+      center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.normal,
@@ -61,10 +61,13 @@ class App extends StatelessWidget {
       locale: context.locale,
       // 明亮主题
       theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent)),
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color.fromARGB(255, 171, 194, 235))),
       // 黑暗主题
       darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.black87)),
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color.fromARGB(255, 17, 95, 230),
+              brightness: Brightness.dark)),
       // 主题模式
       themeMode: ThemeMode.system,
       home: HomePage(),
