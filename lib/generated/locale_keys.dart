@@ -16,14 +16,17 @@ abstract class LocaleKeys {
   /// 请选择
   static const pleaseSelect = 'please_select';
 
-  /// 聊天页底部输入框提示值
-  static const chatPageInputHintText = 'chat_page.input_hintText';
+  /// 聊天页新对话按钮提示值
+  static const chatPageNewChat = 'chat_page.new_chat';
 
   /// 聊天页聊天回复等待提示值
   static const chatPageThinking = 'chat_page.thinking';
 
   /// 聊天页聊天内容复制成功提示信息
   static const chatPageCopySuccess = 'chat_page.copy_success';
+
+  /// 聊天页底部输入框提示值
+  static const chatPageInputHintText = 'chat_page.input_hintText';
 
   /// 设置页API按钮提示值
   static const settingPageApiSettingApiManger =

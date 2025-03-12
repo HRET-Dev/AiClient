@@ -3,7 +3,6 @@ import 'package:ai_client/pages/chat/chat_page.dart';
 import 'package:ai_client/pages/settings/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -107,10 +106,7 @@ class HomePageState extends State<HomePage> {
       children: [
         ChatPage(), // 聊天
         Center(
-          child: TDEmpty(
-            type: TDEmptyType.plain,
-            emptyText: tr(LocaleKeys.thisFeatureIsUnderDevelopment),
-          ),
+          child: Text(LocaleKeys.thisFeatureIsUnderDevelopment).tr(),
         ), // 历史
         SettingsPage(), // 设置
       ],

@@ -2,12 +2,10 @@ import 'dart:core';
 
 import 'package:ai_client/common/utils/loading_indicator.dart';
 import 'package:ai_client/database/app_database.dart';
-import 'package:ai_client/generated/locale_keys.dart';
 import 'package:ai_client/repositories/ai_api__repository.dart';
 import 'package:ai_client/services/ai_api_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 /// API 列表
 class ApiList extends StatefulWidget {
@@ -64,62 +62,53 @@ class _ApiListState extends State<ApiList> {
   }
 
   /// 渲染数据列表
-  Widget _buildDataListSwiperCell(BuildContext context) {
-    // 屏幕宽度
-    var screenWidth = MediaQuery.of(context).size.width;
-    final cellLength = ValueNotifier(_dataList.length); // 使用 ValueNotifier<int>
+  Widget _buildDataList() {
+    // 主题配置
+    final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
       // 数据列表
-      child: ValueListenableBuilder<int>(
-        valueListenable: cellLength, // 监控 ValueNotifier<int>
-        builder: (BuildContext context, value, Widget? child) {
-          return TDCellGroup(
-            cells: _dataList
-                .map((e) => TDCell(
-                      title: e.serviceName, // 使用服务名称
-                      description: DateFormat('yyyy-MM-dd HH:mm:ss').format(e.createdTime)
-                    ))
-                .toList(),
-            builder: (context, cell, index) {
-              return TDSwipeCell(
-                slidableKey: ValueKey(_dataList[index].id),
-                groupTag: 'hret',
-                right: TDSwipeCellPanel(
-                  extentRatio: 60 / screenWidth,
-                  onDismissed: (context) {
-                    // 获取数据ID
-                    var dataId = _dataList[index].id;
-                    // 删除对应的数据
-                    _aiApiService.deleteAiApiById(dataId);
-                    // 删除操作
+      child: SizedBox(
+        child: ListView.builder(
+          shrinkWrap: true,
+          physics: const AlwaysScrollableScrollPhysics(),
+          itemCount: _dataList.length,
+          itemBuilder: (context, index) {
+            final item = _dataList[index];
+            return Dismissible(
+              key: ValueKey(item.id),
+              direction: DismissDirection.endToStart,
+              onDismissed: (direction) {
+                // 在安全的时机执行删除操作
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  // 获取数据ID
+                  var dataId = item.id;
+                  // 删除对应的数据
+                  _aiApiService.deleteAiApiById(dataId);
+                  // 使用 setState 安全地更新 UI
+                  setState(() {
                     _dataList.removeAt(index);
-                    // 更新长度
-                    cellLength.value = _dataList.length;
+                  });
+                });
+              },
+              child: Card(
+                color: theme.colorScheme.onSecondary,
+                shadowColor: theme.colorScheme.secondary,
+                elevation: 2.0,
+                margin: const EdgeInsets.symmetric(vertical: 4.0),
+                child: ListTile(
+                  title: Text(item.serviceName),
+                  subtitle: Text(DateFormat('yyyy-MM-dd HH:mm:ss')
+                      .format(item.createdTime)),
+                  onTap: () => {
+                    // TODO: 跳转到编辑页面
                   },
-                  children: [
-                    TDSwipeCellAction(
-                      backgroundColor: TDTheme.of(context).errorColor6,
-                      label: tr(LocaleKeys.settingPageApiSettingDeleteApi),
-                      onPressed: (context) {
-                        // 获取数据ID
-                        var dataId = _dataList[index].id;
-                        // 删除对应的数据
-                        _aiApiService.deleteAiApiById(dataId);
-                        // 删除操作
-                        _dataList.removeAt(index);
-                        // 更新长度
-                        cellLength.value = _dataList.length;
-                      },
-                    ),
-                  ],
                 ),
-                cell: cell,
-              );
-            },
-          );
-        },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -132,6 +121,6 @@ class _ApiListState extends State<ApiList> {
     }
 
     // 渲染数据列表
-    return _buildDataListSwiperCell(context);
+    return _buildDataList();
   }
 }

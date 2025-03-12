@@ -8,6 +8,8 @@ class ChatMessages extends Table {
   TextColumn get content => text()();
   // 是否为用户消息
   BoolColumn get isUser => boolean()();
+  // 模型名称
+  TextColumn get modelName => text()();
   // 创建时间
   DateTimeColumn get createdTime => dateTime().withDefault(currentDateAndTime)();
   // 关联的对话ID
@@ -20,12 +22,15 @@ class ChatMessage {
   String content;
   /// 是否为用户消息
   final bool isUser;
+  /// 模型名称
+  final String modelName;
   /// 创建时间  
   final DateTime createdTime;
 
   ChatMessage({
     required this.content,
     required this.isUser,
+    required this.modelName,
     required this.createdTime,
   });
 }

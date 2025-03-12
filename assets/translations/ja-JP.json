@@ -5,9 +5,10 @@
   "this_feature_is_under_development": "この機能は開発中です",
   "please_select": "選択してください",
   "chat_page": {
-    "input_hintText": "メッセージを入力してください...",
+    "new_chat": "新しいチャット",
     "thinking": "考え中...",
-    "copy_success": "コピー成功"
+    "copy_success": "コピー成功",
+    "input_hintText": "メッセージを入力してください..."
   },
   "settings_page": {
     "api_setting": {

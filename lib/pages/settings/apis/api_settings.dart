@@ -9,18 +9,18 @@ import 'api_insert.dart';
 /// API设置
 class ApiSettings extends StatefulWidget {
   // API设置信息
-  static TDCell buildApiSettings(BuildContext context) {
-    return TDCell(
-        arrow: false,
-        title: tr(LocaleKeys.settingPageApiSettingApiManger),
-        leftIcon: TDIcons.cloud,
-        onClick: (text) {
-          // 点击事件，跳转到 API 列表页面
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ApiSettings()),
-          );
-        });
+  static Widget buildApiSettings(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.cloud),
+      title: Text(tr(LocaleKeys.settingPageApiSettingApiManger)),
+      onTap: () {
+        // 点击事件，跳转到 API 列表页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ApiSettings()),
+        );
+      },
+    );
   }
 
   @override
@@ -28,41 +28,47 @@ class ApiSettings extends StatefulWidget {
 }
 
 class _ApiSettings extends State<ApiSettings> {
+  /// 添加按钮
+  Widget _addButton() {
+    return IconButton(
+      icon: const Icon(Icons.add),
+      tooltip: tr(LocaleKeys.settingPageApiSettingAddApi),
+      onPressed: () {
+        // 跳转到 API 添加页面
+        Navigator.of(context).push(TDSlidePopupRoute(
+            modalBarrierColor: TDTheme.of(context).fontGyColor2,
+            slideTransitionFrom: SlideTransitionFrom.center,
+            builder: (context) {
+              return ApiInsert();
+            },
+            close: () {
+              // 关闭前刷新列表
+              setState(() {});
+            }));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: TDNavBar(
-          title: tr(LocaleKeys.settingPageApiSettingApiManger),
-        ),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
+        toolbarHeight: 48,
+        title: Text(
+          LocaleKeys.settingPageApiSettingApiManger,
+          style: const TextStyle(fontSize: 18),
+        ).tr(),
+        actions: [
+          // 添加按钮
+          _addButton(),
+        ],
       ),
       body: Column(
         children: [
           // API 列表
           ApiList(key: UniqueKey()),
         ],
-      ),
-      // 内容居中
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      // 添加按钮
-      floatingActionButton: TDFab(
-        theme: TDFabTheme.light,
-        text: tr(LocaleKeys.settingPageApiSettingAddApi),
-        onClick: () {
-          // TDToast.showText(tr(LocaleKeys.thisFeatureIsUnderDevelopment),
-          //     context: context);
-          Navigator.of(context).push(TDSlidePopupRoute(
-              modalBarrierColor: TDTheme.of(context).fontGyColor2,
-              slideTransitionFrom: SlideTransitionFrom.center,
-              builder: (context) {
-                return ApiInsert();
-              },
-              close: () {
-                // 关闭前刷新列表
-                setState(() {});
-              }));
-        },
       ),
     );
   }

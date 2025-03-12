@@ -100,7 +100,10 @@ class ChatPageState extends State<ChatPage> {
     final userMessage = _messageController.text;
     setState(() {
       _messages.add(ChatMessage(
-          content: userMessage, isUser: true, createdTime: DateTime.now()));
+          content: userMessage,
+          isUser: true,
+          modelName: _currentApi!.modelName,
+          createdTime: DateTime.now()));
       _messageController.clear();
       _isWaitingResponse = true; // 设置等待状态
     });
@@ -111,6 +114,7 @@ class ChatPageState extends State<ChatPage> {
     final aiMessage = ChatMessage(
         content: tr(LocaleKeys.chatPageThinking),
         isUser: false,
+        modelName: _currentApi!.modelName,
         createdTime: DateTime.now());
     setState(() {
       _messages.add(aiMessage);
@@ -168,6 +172,7 @@ class ChatPageState extends State<ChatPage> {
           _messages[loadingIndex] = ChatMessage(
               content: errorMessage,
               isUser: false,
+              modelName: _currentApi!.modelName,
               createdTime: DateTime.now());
         }
         _isWaitingResponse = false; // 清除等待状态
@@ -182,12 +187,35 @@ class ChatPageState extends State<ChatPage> {
       body: SafeArea(
         child: Column(
           children: [
+            // 顶部工具栏
+            Padding(
+              // 增加顶部内边距
+              padding: EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // 新对话按钮
+                  IconButton(
+                    icon: Icon(Icons.new_label_outlined),
+                    onPressed: () {
+                      setState(() {
+                        _messages.clear();
+                      });
+                    },
+                    // 提示
+                    tooltip: tr(LocaleKeys.chatPageNewChat),
+                  )
+                ],
+              ),
+            ),
+            // 消息内容区
             Expanded(
               child: MessageList(
                 messages: _messages,
                 scrollController: _scrollController,
               ),
             ),
+            // 输入框
             InputWidget(
               messageController: _messageController,
               isWaitingResponse: _isWaitingResponse,

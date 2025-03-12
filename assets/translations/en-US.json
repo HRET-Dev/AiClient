@@ -5,9 +5,10 @@
   "this_feature_is_under_development": "This feature is under development",
   "please_select": "Please select",
   "chat_page": {
-    "input_hintText": "Enter message here...",
+    "new_chat": "New Chat",
     "thinking": "Thinking...",
-    "copy_success": "Copied to clipboard"
+    "copy_success": "Copied to clipboard",
+    "input_hintText": "Enter message here..."
   },
   "settings_page": {
     "api_setting": {

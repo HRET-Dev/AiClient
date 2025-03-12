@@ -5,9 +5,10 @@
   "this_feature_is_under_development": "이 기능은 개발 중입니다",
   "please_select": "선택해 주세요",
   "chat_page": {
-    "input_hintText": "메시지를 입력하세요...",
+    "new_chat": "새 채팅",
     "thinking": "생각하는 중...",
-    "copy_success": "복사 성공"
+    "copy_success": "복사 성공",
+    "input_hintText": "메시지를 입력하세요..."
   },
   "settings_page": {
     "api_setting": {

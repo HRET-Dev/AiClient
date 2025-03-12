@@ -1,4 +1,4 @@
-package cloud.hret.AiClient;
+package dev.hret.AiClient;
 
 import io.flutter.embedding.android.FlutterActivity;
 

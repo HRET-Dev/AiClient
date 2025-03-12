@@ -8,7 +8,7 @@
 PRODUCT_NAME = AiClient
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = cloud.hret.aiClient
+PRODUCT_BUNDLE_IDENTIFIER = dev.hret.aiClient
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 cloud.hret. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 dev.hret. All rights reserved.

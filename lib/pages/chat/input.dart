@@ -19,13 +19,25 @@ class InputWidget extends StatefulWidget {
 }
 
 class InputState extends State<InputWidget> {
+  /// 输入框焦点
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    // 释放焦点
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   /// 构建输入框
   Widget _buildInput() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: TextField(
         autofocus: true,
+        focusNode: _focusNode,
         controller: widget.messageController,
+        maxLines: null,
         onChanged: (value) => setState(() {}),
         decoration: InputDecoration(
             suffixIcon: IconButton(
@@ -35,7 +47,7 @@ class InputState extends State<InputWidget> {
                 color: widget.messageController.text.isEmpty ||
                         widget.isWaitingResponse
                     ? Colors.grey
-                    : Theme.of(context).primaryColorDark,
+                    : Theme.of(context).colorScheme.primary,
               ),
             ),
             border: OutlineInputBorder(),

@@ -5,9 +5,10 @@
   "this_feature_is_under_development": "該功能正在開發中",
   "please_select": "請選擇",
   "chat_page": {
-    "input_hintText": "在這裡輸入訊息...",
+    "new_chat": "新對話",
     "thinking": "正在思考中...",
-    "copy_success": "複製成功"
+    "copy_success": "複製成功",
+    "input_hintText": "在這裡輸入訊息..."
   },
   "settings_page": {
     "api_setting": {
