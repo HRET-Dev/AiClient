@@ -39,6 +39,7 @@ class InputState extends State<InputWidget> {
         controller: widget.messageController,
         maxLines: null,
         onChanged: (value) => setState(() {}),
+        onSubmitted: (value) => widget.onSendMessage(),
         decoration: InputDecoration(
             suffixIcon: IconButton(
               onPressed: () => widget.onSendMessage(),

@@ -9,6 +9,15 @@ abstract class LocaleKeys {
   /// 设置
   static const settings = 'Settings';
 
+  /// 保存
+  static const save = 'save';
+
+  /// 取消
+  static const cancel = 'cancel';
+
+  // 清除
+  static const clear = 'clear';
+
   /// 该功能正在开发中
   static const thisFeatureIsUnderDevelopment =
       'this_feature_is_under_development';
@@ -66,42 +75,30 @@ abstract class LocaleKeys {
   /// API 名称
   static const aiApiModelApiName = '$aiApiModel.api_name';
 
-  /// 请输入 API 名称
-  static const aiApiModelEnterApiName = '$aiApiModel.enter_api_name';
+  /// API 名称校验失败 提示信息
+  static const aiApiModelApiNameValidateFailed =
+      '$aiApiModel.api_name_validate_failed';
 
   /// API 服务商
   static const aiApiModelApiProvider = '$aiApiModel.api_provider';
 
-  /// 请选择 API 服务商
-  static const aiApiModelSelectApiProvider = '$aiApiModel.select_api_provider';
-
   /// API 服务类型
   static const aiApiModelApiType = '$aiApiModel.api_type';
-
-  /// 请选择 API 服务类型
-  static const aiApiModelSelectApiType = '$aiApiModel.select_api_type';
 
   /// API 地址
   static const aiApiModelApiBaseUrl = '$aiApiModel.api_base_url';
 
-  /// 请输入 API 地址
-  static const aiApiModelEnterApiBaseUrl = '$aiApiModel.enter_api_base_url';
+  /// API 地址校验失败 提示信息
+  static const aiApiModelApiBaseUrlValidateFailed =
+      '$aiApiModel.api_base_url_validate_failed';
 
   /// API 密钥
   static const aiApiModelApiKey = '$aiApiModel.api_key';
 
-  /// 请输入 API 密钥
-  static const aiApiModelEnterApiKey = '$aiApiModel.enter_api_key';
+  /// 模型列表
+  static const aiApiModelModels = '$aiApiModel.models';
 
-  /// 模型名称
-  static const aiApiModelModelName = '$aiApiModel.model_name';
-
-  /// 请输入模型名称
-  static const aiApiModelEnterModelName = '$aiApiModel.enter_model_name';
-
-  /// 模型配置
-  static const aiApiModelModelConfig = '$aiApiModel.model_config';
-
-  /// 请输入模型配置（JSON 格式）非必填
-  static const aiApiModelEnterModelConfig = '$aiApiModel.enter_model_config';
+  /// 模型列表校验失败 提示信息
+  static const aiApiModelModelsValidateFailed =
+      '$aiApiModel.models_validate_failed';
 }

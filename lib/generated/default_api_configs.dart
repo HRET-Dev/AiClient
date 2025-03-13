@@ -15,14 +15,13 @@ class DefaultApiConfigs {
     'Gemini',
   ];
 
-  // 目前支持的API 服务类型
-  static const List<String> supportedApiTypes = [
-    'TEXT_GEN'
-  ];
-
   /// API服务商基础配置
   /// 目前支持：
   /// - OpenAI（使用相对路径）
+  /// - Ollama（使用相对路径）
+  /// - Azure（使用相对路径）
+  /// - Anthropic（使用相对路径）
+  /// - Gemini（使用相对路径）
   /// 后续会支持更多的模型服务商
   static const Map<String, Map<String, String>> apiEndpoints = {
     'OpenAI': {
@@ -39,7 +38,8 @@ class DefaultApiConfigs {
     },
     'Azure': {
       'baseUrl': 'https://{instance}.openai.azure.com',
-      'chatCompletion': 'openai/deployments/{deployment}/chat/completions?api-version={api-version}',
+      'chatCompletion':
+          'openai/deployments/{deployment}/chat/completions?api-version={api-version}',
     },
     'Anthropic': {
       'baseUrl': 'https://api.anthropic.com',
@@ -50,7 +50,7 @@ class DefaultApiConfigs {
       'chatCompletion': 'v1beta/models/{model}:generateContent',
     },
   };
-  
+
   /// API 服务商认证配置
   static const Map<String, Map<String, dynamic>> authConfigs = {
     'OpenAI': {
@@ -79,7 +79,7 @@ class DefaultApiConfigs {
   };
 
   /// 获取服务商的认证配置
-  /// 
+  ///
   /// [provider] 服务商名称
   /// 返回认证配置信息
   static Map<String, dynamic> getAuthConfig(String provider) {
@@ -88,25 +88,23 @@ class DefaultApiConfigs {
 
   /// 生成随机字符串
   static String _generateRandomString(int length) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random.secure();
-    return String.fromCharCodes(
-      List.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length)))
-    );
+    return String.fromCharCodes(List.generate(
+        length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
   /// 默认模型配置 API 配置列表
   static List<AiApiCompanion> defaultApiConfig() {
     return [
       AiApiCompanion(
-        serviceName: const Value('默认模型配置 OpenAI GPT-4o'),
+        serviceName: const Value('默认配置'),
         provider: const Value('OpenAI'),
-        serviceType: const Value('TEXT_GEN'),
         baseUrl: const Value('https://free.zeroai.chat'),
         apiKey: Value(_generateRandomString(32)),
-        modelName: const Value('gpt-4o'),
-        modelConfig: const Value('{}'),
-        isActive: const Value(1),
+        models: const Value('gpt-4o'),
+        isActive: const Value(true),
         createdTime: Value(DateTime.now()),
         updatedTime: Value(DateTime.now()),
       ),
@@ -117,8 +115,8 @@ class DefaultApiConfigs {
   /// [provider] 服务商名称
   /// [endpointKey] 端点类型的键值 (chatCompletion/imageGeneration 等)
   /// [customBaseUrl] 自定义的API服务地址，如果为空则使用默认的API服务地址
-  static String getApiUrl(String provider, String endpointKey,
-      String? customBaseUrl) {
+  static String getApiUrl(
+      String provider, String endpointKey, String? customBaseUrl) {
     // 处理#结尾的直接返回
     if (customBaseUrl != null && customBaseUrl.endsWith('#')) {
       return customBaseUrl.substring(0, customBaseUrl.length - 1);
@@ -147,12 +145,13 @@ class DefaultApiConfigs {
   }
 
   /// 获取模型列表的API路径
-  /// 
+  ///
   /// [provider] 服务商名称
   /// [baseUrl] API服务地址
   /// [apiKey] API Key
   /// 返回模型列表的API路径
-  static String getModelListUrl(String provider, String baseUrl, String apiKey) {
+  static String getModelListUrl(
+      String provider, String baseUrl, String apiKey) {
     if (baseUrl.isEmpty) {
       throw Exception('API 的 baseUrl 不能为空或为 null');
     }
@@ -162,13 +161,14 @@ class DefaultApiConfigs {
   }
 
   /// 根据服务商配置认证头信息
-  /// 
+  ///
   /// [headers]：请求头字典
   /// [api]：API 配置信息
-  static void configureAuthHeaders(Map<String, dynamic> headers, String provider, String apiKey) {
+  static void configureAuthHeaders(
+      Map<String, dynamic> headers, String provider, String apiKey) {
     // 获取服务商的认证配置
     final authConfig = DefaultApiConfigs.getAuthConfig(provider);
-    
+
     // 根据认证类型配置请求头
     switch (authConfig['type']) {
       case 'bearer':
@@ -193,14 +193,14 @@ class DefaultApiConfigs {
         headers['Authorization'] = 'Bearer $apiKey';
         break;
     }
-    
+
     // 添加其他可能的固定头信息
     if (authConfig.containsKey('additionalHeaders')) {
-      final additionalHeaders = authConfig['additionalHeaders'] as Map<String, String>?;
+      final additionalHeaders =
+          authConfig['additionalHeaders'] as Map<String, String>?;
       if (additionalHeaders != null) {
         headers.addAll(additionalHeaders);
       }
     }
   }
-
 }

@@ -2,6 +2,9 @@
   "Chat": "Chat",
   "History": "History",
   "Settings": "Settings",
+  "save": "Save",
+  "cancel": "Cancel",
+  "clear": "Clear",
   "this_feature_is_under_development": "This feature is under development",
   "please_select": "Please select",
   "chat_page": {
@@ -32,18 +35,13 @@
   },
   "ai_api_model": {
     "api_name": "API Name",
-    "enter_api_name": "Enter API Name",
+    "api_name_validate_failed": "API name cannot be empty",
     "api_provider": "API Provider",
-    "select_api_provider": "API Provider",
     "api_type": "API Service Type",
-    "select_api_type": "API Service Type",
     "api_base_url": "API Base URL",
-    "enter_api_base_url": "Enter API Base URL",
+    "api_base_url_validate_failed": "Please enter a valid API URL",
     "api_key": "API Key",
-    "enter_api_key": "Enter API Key",
-    "model_name": "Model Name",
-    "enter_model_name": "Enter Model Name",
-    "model_config": "Model Configuration",
-    "enter_model_config": "Enter Model Configuration (JSON, optional)"
+    "models": "Model List",
+    "models_validate_failed": "Model list cannot be empty"
   }
 }

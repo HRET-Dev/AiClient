@@ -4,7 +4,7 @@ import 'package:ai_client/generated/locale_keys.dart';
 import 'package:ai_client/models/chat_messages.dart';
 import 'package:ai_client/pages/chat/input.dart';
 import 'package:ai_client/pages/chat/message_list.dart';
-import 'package:ai_client/repositories/ai_api__repository.dart';
+import 'package:ai_client/repositories/ai_api_repository.dart';
 import 'package:ai_client/services/ai_api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -35,6 +35,12 @@ class ChatPageState extends State<ChatPage> {
   // 当前正在使用的 API 配置
   AiApiData? _currentApi;
 
+  // 当前模型列表
+  List<String> _models = [];
+
+  // 当前选择的 模型
+  String _currentModel = "";
+
   // 是否正在等待回复
   bool _isWaitingResponse = false;
 
@@ -49,6 +55,7 @@ class ChatPageState extends State<ChatPage> {
     final apis = await _aiApiService.initDefaultAiApiConfig();
     if (apis.isNotEmpty) {
       setState(() {
+        // 设置 API 配置列表
         _apiConfig = apis;
       });
     } else {
@@ -94,6 +101,14 @@ class ChatPageState extends State<ChatPage> {
     // 当前没有 API 配置信息时，默认使用第一条
     _currentApi ??= _apiConfig[0];
 
+    // 加载模型列表
+    _models = _currentApi!.models.split(',');
+
+    // 当前没有模型时，默认使用第一条
+    if (_currentModel.isEmpty) {
+      _currentModel = _models.isNotEmpty ? _models[0] : "";
+    }
+
     // 存储一个新的消息列表 防止历史消息被覆盖
     List<ChatMessage> newMessages = List.from(_messages);
 
@@ -102,7 +117,7 @@ class ChatPageState extends State<ChatPage> {
       _messages.add(ChatMessage(
           content: userMessage,
           isUser: true,
-          modelName: _currentApi!.modelName,
+          modelName: _currentModel,
           createdTime: DateTime.now()));
       _messageController.clear();
       _isWaitingResponse = true; // 设置等待状态
@@ -114,7 +129,7 @@ class ChatPageState extends State<ChatPage> {
     final aiMessage = ChatMessage(
         content: tr(LocaleKeys.chatPageThinking),
         isUser: false,
-        modelName: _currentApi!.modelName,
+        modelName: _currentModel,
         createdTime: DateTime.now());
     setState(() {
       _messages.add(aiMessage);
@@ -122,7 +137,10 @@ class ChatPageState extends State<ChatPage> {
 
     try {
       final responseStream = await _chatHttp.sendStreamChatRequest(
-          api: _currentApi!, message: userMessage, historys: newMessages);
+          api: _currentApi!,
+          model: _currentModel,
+          message: userMessage,
+          historys: newMessages);
 
       // 用于累积AI回复的内容
       String accumulatedContent = "";
@@ -172,7 +190,7 @@ class ChatPageState extends State<ChatPage> {
           _messages[loadingIndex] = ChatMessage(
               content: errorMessage,
               isUser: false,
-              modelName: _currentApi!.modelName,
+              modelName: _currentModel,
               createdTime: DateTime.now());
         }
         _isWaitingResponse = false; // 清除等待状态

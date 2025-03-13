@@ -11,19 +11,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   /// 设置菜单
-  // Widget _buildSettingsList(BuildContext context) {
-  //   return TDCellGroup(
-  //     theme: TDCellGroupTheme.cardTheme,
-  //     cells: [
-  //       // API 管理
-  //       ApiSettings.buildApiSettings(context),
-  //       // 语言设置
-  //       LanguageSettings.buildLanguageSettings(context),
-  //     ],
-  //   );
-  // }
-
-  /// 设置菜单
   Widget _buildSettingsList(BuildContext context) {
     return ListView(
       children: [

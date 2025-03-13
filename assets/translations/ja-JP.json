@@ -2,6 +2,9 @@
   "Chat": "チャット",
   "History": "履歴",
   "Settings": "設定",
+  "save": "保存",
+  "cancel": "キャンセル",
+  "clear": "クリア",
   "this_feature_is_under_development": "この機能は開発中です",
   "please_select": "選択してください",
   "chat_page": {
@@ -32,18 +35,13 @@
   },
   "ai_api_model": {
     "api_name": "API 名",
-    "enter_api_name": "API 名を入力",
+    "api_name_validate_failed": "API名を入力してください",
     "api_provider": "API プロバイダー",
-    "select_api_provider": "API プロバイダー",
     "api_type": "API サービスタイプ",
-    "select_api_type": "API サービスタイプ",
     "api_base_url": "API アドレス",
-    "enter_api_base_url": "API アドレスを入力",
+    "api_base_url_validate_failed": "有効なAPIアドレスを入力してください",
     "api_key": "API キー",
-    "enter_api_key": "API キーを入力",
-    "model_name": "モデル名",
-    "enter_model_name": "モデル名を入力",
-    "model_config": "モデル設定",
-    "enter_model_config": "モデル設定を入力（JSON）任意"
+    "models": "モデルリスト",
+    "models_validate_failed": "モデルリストは空にできません"
   }
 }

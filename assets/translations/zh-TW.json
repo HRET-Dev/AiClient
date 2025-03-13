@@ -2,6 +2,9 @@
   "Chat": "聊天",
   "History": "歷史",
   "Settings": "設置",
+  "save": "保存",
+  "cancel": "取消",
+  "clear": "清除",
   "this_feature_is_under_development": "該功能正在開發中",
   "please_select": "請選擇",
   "chat_page": {
@@ -32,18 +35,13 @@
   },
   "ai_api_model": {
     "api_name": "API 名稱",
-    "enter_api_name": "輸入 API 名稱",
+    "api_name_validate_failed": "API 名稱不能為空",
     "api_provider": "API 服務商",
-    "select_api_provider": "API 服務商",
     "api_type": "API 服務類型",
-    "select_api_type": "API 服務類型",
     "api_base_url": "API 地址",
-    "enter_api_base_url": "輸入 API 地址",
+    "api_base_url_validate_failed": "請輸入有效的 API 地址",
     "api_key": "API 密鑰",
-    "enter_api_key": "輸入 API 密鑰",
-    "model_name": "模型名稱",
-    "enter_model_name": "輸入模型名稱",
-    "model_config": "模型配置",
-    "enter_model_config": "輸入模型配置（JSON）非必填"
+    "models": "模型列表",
+    "models_validate_failed": "模型列表不能為空"
   }
 }

@@ -2,6 +2,9 @@
   "Chat": "채팅",
   "History": "기록",
   "Settings": "설정",
+  "save": "저장",
+  "cancel": "취소",
+  "clear": "지우기",
   "this_feature_is_under_development": "이 기능은 개발 중입니다",
   "please_select": "선택해 주세요",
   "chat_page": {
@@ -32,18 +35,13 @@
   },
   "ai_api_model": {
     "api_name": "API 이름",
-    "enter_api_name": "API 이름 입력",
+    "api_name_validate_failed": "API 이름은 비워둘 수 없습니다",
     "api_provider": "API 제공자",
-    "select_api_provider": "API 제공자",
     "api_type": "API 서비스 유형",
-    "select_api_type": "API 서비스 유형",
     "api_base_url": "API 주소",
-    "enter_api_base_url": "API 주소 입력",
+    "api_base_url_validate_failed": "유효한 API 주소를 입력하세요",
     "api_key": "API 키",
-    "enter_api_key": "API 키 입력",
-    "model_name": "모델 이름",
-    "enter_model_name": "모델 이름 입력",
-    "model_config": "모델 설정",
-    "enter_model_config": "모델 설정 입력(JSON) 선택사항"
+    "models": "모델 목록",
+    "models_validate_failed": "모델 목록은 비워둘 수 없습니다"
   }
 }

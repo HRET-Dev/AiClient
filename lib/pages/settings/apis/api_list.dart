@@ -2,14 +2,21 @@ import 'dart:core';
 
 import 'package:ai_client/common/utils/loading_indicator.dart';
 import 'package:ai_client/database/app_database.dart';
-import 'package:ai_client/repositories/ai_api__repository.dart';
+import 'package:ai_client/pages/settings/apis/api_info.dart';
+import 'package:ai_client/repositories/ai_api_repository.dart';
 import 'package:ai_client/services/ai_api_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// API 列表
 class ApiList extends StatefulWidget {
-  const ApiList({super.key});
+  // 数据库实例
+  final AppDatabase appDatabase;
+
+  const ApiList({
+    super.key,
+    required this.appDatabase,
+  });
 
   @override
   State<StatefulWidget> createState() => _ApiListState();
@@ -18,8 +25,7 @@ class ApiList extends StatefulWidget {
 /// API 列表的状态管理
 class _ApiListState extends State<ApiList> {
   /// AiApi 服务类
-  final AiApiService _aiApiService =
-      AiApiService(AiApiRepository(AppDatabase()));
+  late AiApiService _aiApiService;
 
   /// API信息列表
   List<AiApiData> _dataList = [];
@@ -30,6 +36,13 @@ class _ApiListState extends State<ApiList> {
   @override
   void initState() {
     super.initState();
+
+    // 初始化 AiApi 服务类
+    _aiApiService = AiApiService(
+      AiApiRepository(
+        widget.appDatabase,
+      ),
+    );
     // 初始化数据库和数据
     _initDatabaseAndData();
   }
@@ -100,9 +113,26 @@ class _ApiListState extends State<ApiList> {
                 child: ListTile(
                   title: Text(item.serviceName),
                   subtitle: Text(DateFormat('yyyy-MM-dd HH:mm:ss')
-                      .format(item.createdTime)),
-                  onTap: () => {
-                    // TODO: 跳转到编辑页面
+                      .format(item.updatedTime)),
+                  onTap: () async {
+                    // 通过弹窗打开 api 信息页面
+                    final result = await showDialog(
+                      context: context,
+                      builder: (context) => ApiInfo(
+                        aiApi: item,
+                        appDatabase: widget.appDatabase,
+                      ),
+                    );
+
+                    // 如果编辑成功，刷新列表
+                    if (result == true) {
+                      // 重新查询数据
+                      var data = await _aiApiService.getAllAiApis();
+                      setState(() {
+                        // 更新数据列表
+                        _dataList = List.from(data);
+                      });
+                    }
                   },
                 ),
               ),

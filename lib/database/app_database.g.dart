@@ -29,12 +29,6 @@ class $AiApiTable extends AiApi with TableInfo<$AiApiTable, AiApiData> {
   late final GeneratedColumn<String> provider = GeneratedColumn<String>(
       'provider', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _serviceTypeMeta =
-      const VerificationMeta('serviceType');
-  @override
-  late final GeneratedColumn<String> serviceType = GeneratedColumn<String>(
-      'service_type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _baseUrlMeta =
       const VerificationMeta('baseUrl');
   @override
@@ -46,26 +40,21 @@ class $AiApiTable extends AiApi with TableInfo<$AiApiTable, AiApiData> {
   late final GeneratedColumn<String> apiKey = GeneratedColumn<String>(
       'api_key', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _modelNameMeta =
-      const VerificationMeta('modelName');
+  static const VerificationMeta _modelsMeta = const VerificationMeta('models');
   @override
-  late final GeneratedColumn<String> modelName = GeneratedColumn<String>(
-      'model_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _modelConfigMeta =
-      const VerificationMeta('modelConfig');
-  @override
-  late final GeneratedColumn<String> modelConfig = GeneratedColumn<String>(
-      'model_config', aliasedName, false,
+  late final GeneratedColumn<String> models = GeneratedColumn<String>(
+      'models', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _isActiveMeta =
       const VerificationMeta('isActive');
   @override
-  late final GeneratedColumn<int> isActive = GeneratedColumn<int>(
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
       'is_active', aliasedName, false,
-      type: DriftSqlType.int,
+      type: DriftSqlType.bool,
       requiredDuringInsert: false,
-      defaultValue: const Constant(1));
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
   static const VerificationMeta _createdTimeMeta =
       const VerificationMeta('createdTime');
   @override
@@ -87,11 +76,9 @@ class $AiApiTable extends AiApi with TableInfo<$AiApiTable, AiApiData> {
         id,
         serviceName,
         provider,
-        serviceType,
         baseUrl,
         apiKey,
-        modelName,
-        modelConfig,
+        models,
         isActive,
         createdTime,
         updatedTime
@@ -123,14 +110,6 @@ class $AiApiTable extends AiApi with TableInfo<$AiApiTable, AiApiData> {
     } else if (isInserting) {
       context.missing(_providerMeta);
     }
-    if (data.containsKey('service_type')) {
-      context.handle(
-          _serviceTypeMeta,
-          serviceType.isAcceptableOrUnknown(
-              data['service_type']!, _serviceTypeMeta));
-    } else if (isInserting) {
-      context.missing(_serviceTypeMeta);
-    }
     if (data.containsKey('base_url')) {
       context.handle(_baseUrlMeta,
           baseUrl.isAcceptableOrUnknown(data['base_url']!, _baseUrlMeta));
@@ -143,19 +122,11 @@ class $AiApiTable extends AiApi with TableInfo<$AiApiTable, AiApiData> {
     } else if (isInserting) {
       context.missing(_apiKeyMeta);
     }
-    if (data.containsKey('model_name')) {
-      context.handle(_modelNameMeta,
-          modelName.isAcceptableOrUnknown(data['model_name']!, _modelNameMeta));
+    if (data.containsKey('models')) {
+      context.handle(_modelsMeta,
+          models.isAcceptableOrUnknown(data['models']!, _modelsMeta));
     } else if (isInserting) {
-      context.missing(_modelNameMeta);
-    }
-    if (data.containsKey('model_config')) {
-      context.handle(
-          _modelConfigMeta,
-          modelConfig.isAcceptableOrUnknown(
-              data['model_config']!, _modelConfigMeta));
-    } else if (isInserting) {
-      context.missing(_modelConfigMeta);
+      context.missing(_modelsMeta);
     }
     if (data.containsKey('is_active')) {
       context.handle(_isActiveMeta,
@@ -188,18 +159,14 @@ class $AiApiTable extends AiApi with TableInfo<$AiApiTable, AiApiData> {
           .read(DriftSqlType.string, data['${effectivePrefix}service_name'])!,
       provider: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}provider'])!,
-      serviceType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}service_type'])!,
       baseUrl: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}base_url'])!,
       apiKey: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}api_key'])!,
-      modelName: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}model_name'])!,
-      modelConfig: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}model_config'])!,
+      models: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}models'])!,
       isActive: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}is_active'])!,
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
       createdTime: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_time'])!,
       updatedTime: attachedDatabase.typeMapping
@@ -223,23 +190,17 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
   /// 服务提供商
   final String provider;
 
-  /// 服务类型
-  final String serviceType;
-
   /// 基础URL地址
   final String baseUrl;
 
   /// API密钥
   final String apiKey;
 
-  /// 模型名称
-  final String modelName;
+  /// 模型列表 (多个模型以逗号分隔)
+  final String models;
 
-  /// 模型配置(JSON格式)
-  final String modelConfig;
-
-  /// 是否激活(1:激活 0:未激活)
-  final int isActive;
+  /// 是否激活 (默认激活)
+  final bool isActive;
 
   /// 创建时间
   final DateTime createdTime;
@@ -250,11 +211,9 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
       {required this.id,
       required this.serviceName,
       required this.provider,
-      required this.serviceType,
       required this.baseUrl,
       required this.apiKey,
-      required this.modelName,
-      required this.modelConfig,
+      required this.models,
       required this.isActive,
       required this.createdTime,
       required this.updatedTime});
@@ -264,12 +223,10 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
     map['id'] = Variable<int>(id);
     map['service_name'] = Variable<String>(serviceName);
     map['provider'] = Variable<String>(provider);
-    map['service_type'] = Variable<String>(serviceType);
     map['base_url'] = Variable<String>(baseUrl);
     map['api_key'] = Variable<String>(apiKey);
-    map['model_name'] = Variable<String>(modelName);
-    map['model_config'] = Variable<String>(modelConfig);
-    map['is_active'] = Variable<int>(isActive);
+    map['models'] = Variable<String>(models);
+    map['is_active'] = Variable<bool>(isActive);
     map['created_time'] = Variable<DateTime>(createdTime);
     map['updated_time'] = Variable<DateTime>(updatedTime);
     return map;
@@ -280,11 +237,9 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
       id: Value(id),
       serviceName: Value(serviceName),
       provider: Value(provider),
-      serviceType: Value(serviceType),
       baseUrl: Value(baseUrl),
       apiKey: Value(apiKey),
-      modelName: Value(modelName),
-      modelConfig: Value(modelConfig),
+      models: Value(models),
       isActive: Value(isActive),
       createdTime: Value(createdTime),
       updatedTime: Value(updatedTime),
@@ -298,12 +253,10 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
       id: serializer.fromJson<int>(json['id']),
       serviceName: serializer.fromJson<String>(json['serviceName']),
       provider: serializer.fromJson<String>(json['provider']),
-      serviceType: serializer.fromJson<String>(json['serviceType']),
       baseUrl: serializer.fromJson<String>(json['baseUrl']),
       apiKey: serializer.fromJson<String>(json['apiKey']),
-      modelName: serializer.fromJson<String>(json['modelName']),
-      modelConfig: serializer.fromJson<String>(json['modelConfig']),
-      isActive: serializer.fromJson<int>(json['isActive']),
+      models: serializer.fromJson<String>(json['models']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
       createdTime: serializer.fromJson<DateTime>(json['createdTime']),
       updatedTime: serializer.fromJson<DateTime>(json['updatedTime']),
     );
@@ -315,12 +268,10 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
       'id': serializer.toJson<int>(id),
       'serviceName': serializer.toJson<String>(serviceName),
       'provider': serializer.toJson<String>(provider),
-      'serviceType': serializer.toJson<String>(serviceType),
       'baseUrl': serializer.toJson<String>(baseUrl),
       'apiKey': serializer.toJson<String>(apiKey),
-      'modelName': serializer.toJson<String>(modelName),
-      'modelConfig': serializer.toJson<String>(modelConfig),
-      'isActive': serializer.toJson<int>(isActive),
+      'models': serializer.toJson<String>(models),
+      'isActive': serializer.toJson<bool>(isActive),
       'createdTime': serializer.toJson<DateTime>(createdTime),
       'updatedTime': serializer.toJson<DateTime>(updatedTime),
     };
@@ -330,23 +281,19 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
           {int? id,
           String? serviceName,
           String? provider,
-          String? serviceType,
           String? baseUrl,
           String? apiKey,
-          String? modelName,
-          String? modelConfig,
-          int? isActive,
+          String? models,
+          bool? isActive,
           DateTime? createdTime,
           DateTime? updatedTime}) =>
       AiApiData(
         id: id ?? this.id,
         serviceName: serviceName ?? this.serviceName,
         provider: provider ?? this.provider,
-        serviceType: serviceType ?? this.serviceType,
         baseUrl: baseUrl ?? this.baseUrl,
         apiKey: apiKey ?? this.apiKey,
-        modelName: modelName ?? this.modelName,
-        modelConfig: modelConfig ?? this.modelConfig,
+        models: models ?? this.models,
         isActive: isActive ?? this.isActive,
         createdTime: createdTime ?? this.createdTime,
         updatedTime: updatedTime ?? this.updatedTime,
@@ -357,13 +304,9 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
       serviceName:
           data.serviceName.present ? data.serviceName.value : this.serviceName,
       provider: data.provider.present ? data.provider.value : this.provider,
-      serviceType:
-          data.serviceType.present ? data.serviceType.value : this.serviceType,
       baseUrl: data.baseUrl.present ? data.baseUrl.value : this.baseUrl,
       apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
-      modelName: data.modelName.present ? data.modelName.value : this.modelName,
-      modelConfig:
-          data.modelConfig.present ? data.modelConfig.value : this.modelConfig,
+      models: data.models.present ? data.models.value : this.models,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdTime:
           data.createdTime.present ? data.createdTime.value : this.createdTime,
@@ -378,11 +321,9 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
           ..write('id: $id, ')
           ..write('serviceName: $serviceName, ')
           ..write('provider: $provider, ')
-          ..write('serviceType: $serviceType, ')
           ..write('baseUrl: $baseUrl, ')
           ..write('apiKey: $apiKey, ')
-          ..write('modelName: $modelName, ')
-          ..write('modelConfig: $modelConfig, ')
+          ..write('models: $models, ')
           ..write('isActive: $isActive, ')
           ..write('createdTime: $createdTime, ')
           ..write('updatedTime: $updatedTime')
@@ -391,18 +332,8 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      serviceName,
-      provider,
-      serviceType,
-      baseUrl,
-      apiKey,
-      modelName,
-      modelConfig,
-      isActive,
-      createdTime,
-      updatedTime);
+  int get hashCode => Object.hash(id, serviceName, provider, baseUrl, apiKey,
+      models, isActive, createdTime, updatedTime);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -410,11 +341,9 @@ class AiApiData extends DataClass implements Insertable<AiApiData> {
           other.id == this.id &&
           other.serviceName == this.serviceName &&
           other.provider == this.provider &&
-          other.serviceType == this.serviceType &&
           other.baseUrl == this.baseUrl &&
           other.apiKey == this.apiKey &&
-          other.modelName == this.modelName &&
-          other.modelConfig == this.modelConfig &&
+          other.models == this.models &&
           other.isActive == this.isActive &&
           other.createdTime == this.createdTime &&
           other.updatedTime == this.updatedTime);
@@ -424,23 +353,19 @@ class AiApiCompanion extends UpdateCompanion<AiApiData> {
   final Value<int> id;
   final Value<String> serviceName;
   final Value<String> provider;
-  final Value<String> serviceType;
   final Value<String> baseUrl;
   final Value<String> apiKey;
-  final Value<String> modelName;
-  final Value<String> modelConfig;
-  final Value<int> isActive;
+  final Value<String> models;
+  final Value<bool> isActive;
   final Value<DateTime> createdTime;
   final Value<DateTime> updatedTime;
   const AiApiCompanion({
     this.id = const Value.absent(),
     this.serviceName = const Value.absent(),
     this.provider = const Value.absent(),
-    this.serviceType = const Value.absent(),
     this.baseUrl = const Value.absent(),
     this.apiKey = const Value.absent(),
-    this.modelName = const Value.absent(),
-    this.modelConfig = const Value.absent(),
+    this.models = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdTime = const Value.absent(),
     this.updatedTime = const Value.absent(),
@@ -449,31 +374,25 @@ class AiApiCompanion extends UpdateCompanion<AiApiData> {
     this.id = const Value.absent(),
     required String serviceName,
     required String provider,
-    required String serviceType,
     required String baseUrl,
     required String apiKey,
-    required String modelName,
-    required String modelConfig,
+    required String models,
     this.isActive = const Value.absent(),
     this.createdTime = const Value.absent(),
     this.updatedTime = const Value.absent(),
   })  : serviceName = Value(serviceName),
         provider = Value(provider),
-        serviceType = Value(serviceType),
         baseUrl = Value(baseUrl),
         apiKey = Value(apiKey),
-        modelName = Value(modelName),
-        modelConfig = Value(modelConfig);
+        models = Value(models);
   static Insertable<AiApiData> custom({
     Expression<int>? id,
     Expression<String>? serviceName,
     Expression<String>? provider,
-    Expression<String>? serviceType,
     Expression<String>? baseUrl,
     Expression<String>? apiKey,
-    Expression<String>? modelName,
-    Expression<String>? modelConfig,
-    Expression<int>? isActive,
+    Expression<String>? models,
+    Expression<bool>? isActive,
     Expression<DateTime>? createdTime,
     Expression<DateTime>? updatedTime,
   }) {
@@ -481,11 +400,9 @@ class AiApiCompanion extends UpdateCompanion<AiApiData> {
       if (id != null) 'id': id,
       if (serviceName != null) 'service_name': serviceName,
       if (provider != null) 'provider': provider,
-      if (serviceType != null) 'service_type': serviceType,
       if (baseUrl != null) 'base_url': baseUrl,
       if (apiKey != null) 'api_key': apiKey,
-      if (modelName != null) 'model_name': modelName,
-      if (modelConfig != null) 'model_config': modelConfig,
+      if (models != null) 'models': models,
       if (isActive != null) 'is_active': isActive,
       if (createdTime != null) 'created_time': createdTime,
       if (updatedTime != null) 'updated_time': updatedTime,
@@ -496,23 +413,19 @@ class AiApiCompanion extends UpdateCompanion<AiApiData> {
       {Value<int>? id,
       Value<String>? serviceName,
       Value<String>? provider,
-      Value<String>? serviceType,
       Value<String>? baseUrl,
       Value<String>? apiKey,
-      Value<String>? modelName,
-      Value<String>? modelConfig,
-      Value<int>? isActive,
+      Value<String>? models,
+      Value<bool>? isActive,
       Value<DateTime>? createdTime,
       Value<DateTime>? updatedTime}) {
     return AiApiCompanion(
       id: id ?? this.id,
       serviceName: serviceName ?? this.serviceName,
       provider: provider ?? this.provider,
-      serviceType: serviceType ?? this.serviceType,
       baseUrl: baseUrl ?? this.baseUrl,
       apiKey: apiKey ?? this.apiKey,
-      modelName: modelName ?? this.modelName,
-      modelConfig: modelConfig ?? this.modelConfig,
+      models: models ?? this.models,
       isActive: isActive ?? this.isActive,
       createdTime: createdTime ?? this.createdTime,
       updatedTime: updatedTime ?? this.updatedTime,
@@ -531,23 +444,17 @@ class AiApiCompanion extends UpdateCompanion<AiApiData> {
     if (provider.present) {
       map['provider'] = Variable<String>(provider.value);
     }
-    if (serviceType.present) {
-      map['service_type'] = Variable<String>(serviceType.value);
-    }
     if (baseUrl.present) {
       map['base_url'] = Variable<String>(baseUrl.value);
     }
     if (apiKey.present) {
       map['api_key'] = Variable<String>(apiKey.value);
     }
-    if (modelName.present) {
-      map['model_name'] = Variable<String>(modelName.value);
-    }
-    if (modelConfig.present) {
-      map['model_config'] = Variable<String>(modelConfig.value);
+    if (models.present) {
+      map['models'] = Variable<String>(models.value);
     }
     if (isActive.present) {
-      map['is_active'] = Variable<int>(isActive.value);
+      map['is_active'] = Variable<bool>(isActive.value);
     }
     if (createdTime.present) {
       map['created_time'] = Variable<DateTime>(createdTime.value);
@@ -564,11 +471,9 @@ class AiApiCompanion extends UpdateCompanion<AiApiData> {
           ..write('id: $id, ')
           ..write('serviceName: $serviceName, ')
           ..write('provider: $provider, ')
-          ..write('serviceType: $serviceType, ')
           ..write('baseUrl: $baseUrl, ')
           ..write('apiKey: $apiKey, ')
-          ..write('modelName: $modelName, ')
-          ..write('modelConfig: $modelConfig, ')
+          ..write('models: $models, ')
           ..write('isActive: $isActive, ')
           ..write('createdTime: $createdTime, ')
           ..write('updatedTime: $updatedTime')
@@ -592,12 +497,10 @@ typedef $$AiApiTableCreateCompanionBuilder = AiApiCompanion Function({
   Value<int> id,
   required String serviceName,
   required String provider,
-  required String serviceType,
   required String baseUrl,
   required String apiKey,
-  required String modelName,
-  required String modelConfig,
-  Value<int> isActive,
+  required String models,
+  Value<bool> isActive,
   Value<DateTime> createdTime,
   Value<DateTime> updatedTime,
 });
@@ -605,12 +508,10 @@ typedef $$AiApiTableUpdateCompanionBuilder = AiApiCompanion Function({
   Value<int> id,
   Value<String> serviceName,
   Value<String> provider,
-  Value<String> serviceType,
   Value<String> baseUrl,
   Value<String> apiKey,
-  Value<String> modelName,
-  Value<String> modelConfig,
-  Value<int> isActive,
+  Value<String> models,
+  Value<bool> isActive,
   Value<DateTime> createdTime,
   Value<DateTime> updatedTime,
 });
@@ -632,22 +533,16 @@ class $$AiApiTableFilterComposer extends Composer<_$AppDatabase, $AiApiTable> {
   ColumnFilters<String> get provider => $composableBuilder(
       column: $table.provider, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get serviceType => $composableBuilder(
-      column: $table.serviceType, builder: (column) => ColumnFilters(column));
-
   ColumnFilters<String> get baseUrl => $composableBuilder(
       column: $table.baseUrl, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get apiKey => $composableBuilder(
       column: $table.apiKey, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get modelName => $composableBuilder(
-      column: $table.modelName, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get models => $composableBuilder(
+      column: $table.models, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get modelConfig => $composableBuilder(
-      column: $table.modelConfig, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get isActive => $composableBuilder(
+  ColumnFilters<bool> get isActive => $composableBuilder(
       column: $table.isActive, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdTime => $composableBuilder(
@@ -675,22 +570,16 @@ class $$AiApiTableOrderingComposer
   ColumnOrderings<String> get provider => $composableBuilder(
       column: $table.provider, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get serviceType => $composableBuilder(
-      column: $table.serviceType, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get baseUrl => $composableBuilder(
       column: $table.baseUrl, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get apiKey => $composableBuilder(
       column: $table.apiKey, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get modelName => $composableBuilder(
-      column: $table.modelName, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get models => $composableBuilder(
+      column: $table.models, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get modelConfig => $composableBuilder(
-      column: $table.modelConfig, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get isActive => $composableBuilder(
+  ColumnOrderings<bool> get isActive => $composableBuilder(
       column: $table.isActive, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdTime => $composableBuilder(
@@ -718,22 +607,16 @@ class $$AiApiTableAnnotationComposer
   GeneratedColumn<String> get provider =>
       $composableBuilder(column: $table.provider, builder: (column) => column);
 
-  GeneratedColumn<String> get serviceType => $composableBuilder(
-      column: $table.serviceType, builder: (column) => column);
-
   GeneratedColumn<String> get baseUrl =>
       $composableBuilder(column: $table.baseUrl, builder: (column) => column);
 
   GeneratedColumn<String> get apiKey =>
       $composableBuilder(column: $table.apiKey, builder: (column) => column);
 
-  GeneratedColumn<String> get modelName =>
-      $composableBuilder(column: $table.modelName, builder: (column) => column);
+  GeneratedColumn<String> get models =>
+      $composableBuilder(column: $table.models, builder: (column) => column);
 
-  GeneratedColumn<String> get modelConfig => $composableBuilder(
-      column: $table.modelConfig, builder: (column) => column);
-
-  GeneratedColumn<int> get isActive =>
+  GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdTime => $composableBuilder(
@@ -769,12 +652,10 @@ class $$AiApiTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String> serviceName = const Value.absent(),
             Value<String> provider = const Value.absent(),
-            Value<String> serviceType = const Value.absent(),
             Value<String> baseUrl = const Value.absent(),
             Value<String> apiKey = const Value.absent(),
-            Value<String> modelName = const Value.absent(),
-            Value<String> modelConfig = const Value.absent(),
-            Value<int> isActive = const Value.absent(),
+            Value<String> models = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
             Value<DateTime> createdTime = const Value.absent(),
             Value<DateTime> updatedTime = const Value.absent(),
           }) =>
@@ -782,11 +663,9 @@ class $$AiApiTableTableManager extends RootTableManager<
             id: id,
             serviceName: serviceName,
             provider: provider,
-            serviceType: serviceType,
             baseUrl: baseUrl,
             apiKey: apiKey,
-            modelName: modelName,
-            modelConfig: modelConfig,
+            models: models,
             isActive: isActive,
             createdTime: createdTime,
             updatedTime: updatedTime,
@@ -795,12 +674,10 @@ class $$AiApiTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             required String serviceName,
             required String provider,
-            required String serviceType,
             required String baseUrl,
             required String apiKey,
-            required String modelName,
-            required String modelConfig,
-            Value<int> isActive = const Value.absent(),
+            required String models,
+            Value<bool> isActive = const Value.absent(),
             Value<DateTime> createdTime = const Value.absent(),
             Value<DateTime> updatedTime = const Value.absent(),
           }) =>
@@ -808,11 +685,9 @@ class $$AiApiTableTableManager extends RootTableManager<
             id: id,
             serviceName: serviceName,
             provider: provider,
-            serviceType: serviceType,
             baseUrl: baseUrl,
             apiKey: apiKey,
-            modelName: modelName,
-            modelConfig: modelConfig,
+            models: models,
             isActive: isActive,
             createdTime: createdTime,
             updatedTime: updatedTime,

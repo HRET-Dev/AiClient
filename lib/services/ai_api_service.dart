@@ -1,6 +1,6 @@
 import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/default_api_configs.dart';
-import 'package:ai_client/repositories/ai_api__repository.dart';
+import 'package:ai_client/repositories/ai_api_repository.dart';
 import 'package:drift/drift.dart';
 import 'dart:developer' as developer;
 

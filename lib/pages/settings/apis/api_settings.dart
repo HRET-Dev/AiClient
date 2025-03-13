@@ -1,10 +1,10 @@
+import 'package:ai_client/database/app_database.dart';
+import 'package:ai_client/generated/default_api_configs.dart';
 import 'package:ai_client/generated/locale_keys.dart';
+import 'package:ai_client/pages/settings/apis/api_info.dart';
 import 'package:ai_client/pages/settings/apis/api_list.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
-
-import 'api_insert.dart';
 
 /// API设置
 class ApiSettings extends StatefulWidget {
@@ -28,23 +28,44 @@ class ApiSettings extends StatefulWidget {
 }
 
 class _ApiSettings extends State<ApiSettings> {
+  // 获取 AppDatabase 实例
+  final AppDatabase appDatabase = AppDatabase();
+
   /// 添加按钮
   Widget _addButton() {
     return IconButton(
       icon: const Icon(Icons.add),
       tooltip: tr(LocaleKeys.settingPageApiSettingAddApi),
-      onPressed: () {
-        // 跳转到 API 添加页面
-        Navigator.of(context).push(TDSlidePopupRoute(
-            modalBarrierColor: TDTheme.of(context).fontGyColor2,
-            slideTransitionFrom: SlideTransitionFrom.center,
-            builder: (context) {
-              return ApiInsert();
-            },
-            close: () {
-              // 关闭前刷新列表
-              setState(() {});
-            }));
+      onPressed: () async {
+        // 从 DefaultApiConfigs 获取第一个支持的 API 提供商作为默认值
+        final defaultProvider =
+            DefaultApiConfigs.supportedApiProviders.isNotEmpty
+                ? DefaultApiConfigs.supportedApiProviders.first
+                : 'OpenAI'; // 提供一个后备默认值
+        // 打开 AiApi 信息弹窗，创建一个新的空 AiApiData 对象
+        final result = await showDialog(
+          context: context,
+          builder: (context) => ApiInfo(
+            aiApi: AiApiData(
+              id: 0,
+              provider: defaultProvider,
+              serviceName: '',
+              baseUrl: '',
+              apiKey: '',
+              models: '',
+              createdTime: DateTime.now(),
+              isActive: true,
+              updatedTime: DateTime.now(),
+            ),
+            appDatabase: appDatabase,
+          ),
+        );
+
+        // 如果保存成功，刷新列表
+        if (result == true) {
+          // 通过 key 刷新 ApiList
+          setState(() {});
+        }
       },
     );
   }
@@ -64,11 +85,14 @@ class _ApiSettings extends State<ApiSettings> {
           _addButton(),
         ],
       ),
-      body: Column(
-        children: [
-          // API 列表
-          ApiList(key: UniqueKey()),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ApiList(key: UniqueKey(), appDatabase: appDatabase),
+            ),
+          ],
+        ),
       ),
     );
   }

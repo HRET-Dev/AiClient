@@ -11,23 +11,17 @@ class AiApi extends Table {
   /// 服务提供商
   late final provider = text()();
 
-  /// 服务类型
-  late final serviceType = text()();
-
   /// 基础URL地址
   late final baseUrl = text()();
 
   /// API密钥
   late final apiKey = text()();
 
-  /// 模型名称
-  late final modelName = text()();
+  /// 模型列表 (多个模型以逗号分隔)
+  late final models = text()();
 
-  /// 模型配置(JSON格式)
-  late final modelConfig = text()();
-
-  /// 是否激活(1:激活 0:未激活)
-  late final isActive = integer().withDefault(const Constant(1))();
+  /// 是否激活 (默认激活)
+  late final isActive = boolean().withDefault(const Constant(true))();
 
   /// 创建时间
   late final createdTime = dateTime().withDefault(currentDateAndTime)();
