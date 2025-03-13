@@ -124,6 +124,7 @@ class MessageList extends StatelessWidget {
             children: [
               // 模型名称和时间
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     message.modelName,

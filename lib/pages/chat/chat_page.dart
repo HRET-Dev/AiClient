@@ -9,7 +9,6 @@ import 'package:ai_client/services/ai_api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 /// 聊天页面，同时集成了 HTTP 请求和 SQLite 加载 API 配置信息
 class ChatPage extends StatefulWidget {
@@ -60,8 +59,23 @@ class ChatPageState extends State<ChatPage> {
       });
     } else {
       if (mounted) {
-        // 若数据库中没有配置，也可以考虑使用默认配置或提示用户配置相关信息
-        TDToast.showText('未找到 API 配置信息', context: context);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('提示'),
+              content: Text('未找到 API 配置信息'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('确定'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
       }
     }
   }
@@ -71,6 +85,202 @@ class ChatPageState extends State<ChatPage> {
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// 聊天页信息设置弹窗
+  void _showSettingsDialog() {
+    // 重新加载API配置
+    _loadApiConfig();
+
+    // 如果API配置为空，提示用户
+    if (_apiConfig.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('提示'),
+            content: Text('无可用 API 配置信息'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('确定'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // 判断当前API是否为空
+    if (_currentApi == null) {
+      // 如果当前API为空，设置为第一个API
+      _currentApi = _apiConfig[0];
+    } else {
+      // 如果选择了则比对是否当前选择的API信息已经发生变化
+      final currentApiIndex =
+          _apiConfig.indexWhere((api) => api.id == _currentApi!.id);
+      if (currentApiIndex == -1) {
+        // 如果当前选择的API不在配置列表中，重置为第一个API
+        _currentApi = _apiConfig[0];
+      } else {
+        // 更新当前API的信息
+        _currentApi = _apiConfig[currentApiIndex];
+      }
+    }
+
+    // 初始化模型列表
+    List<String> currentModels = _currentApi!.models.split(',');
+
+    // 初始化当前模型（如果未设置或不在当前模型列表中）
+    if (_currentModel.isEmpty || !currentModels.contains(_currentModel)) {
+      _currentModel = currentModels.isNotEmpty ? currentModels[0] : "";
+    }
+
+    // 创建临时变量用于对话框中的选择
+    AiApiData tempSelectedApi = _currentApi!;
+    String tempSelectedModel = _currentModel;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          // 根据选择的API更新模型列表
+          List<String> modelOptions = tempSelectedApi.models.split(',');
+
+          // 确保选择的模型在当前API的模型列表中
+          if (!modelOptions.contains(tempSelectedModel) &&
+              modelOptions.isNotEmpty) {
+            tempSelectedModel = modelOptions[0];
+          }
+
+          return AlertDialog(
+            title: Text(''),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // API和模型选择标题
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('API配置',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center),
+                      ),
+                      Expanded(
+                        child: Text('模型',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  // API和模型选择列表
+                  SizedBox(
+                    height: 200, // 设置一个固定高度
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // API列表（左侧）
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: _apiConfig.length,
+                              itemBuilder: (context, index) {
+                                final api = _apiConfig[index];
+                                return ListTile(
+                                  title: Text(api.serviceName),
+                                  subtitle: Text(
+                                    api.baseUrl,
+                                    style: TextStyle(fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  selected: tempSelectedApi.id == api.id,
+                                  onTap: () {
+                                    setState(() {
+                                      tempSelectedApi = api;
+                                      // 更新模型列表并选择第一个模型
+                                      List<String> newModels =
+                                          api.models.split(',');
+                                      tempSelectedModel = newModels.isNotEmpty
+                                          ? newModels[0]
+                                          : "";
+                                    });
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        // 模型列表（右侧）
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: modelOptions.length,
+                              itemBuilder: (context, index) {
+                                final model = modelOptions[index];
+                                return ListTile(
+                                  title: Text(model),
+                                  selected: tempSelectedModel == model,
+                                  onTap: () {
+                                    setState(() {
+                                      tempSelectedModel = model;
+                                    });
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text(tr(LocaleKeys.cancel)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text(tr(LocaleKeys.save)),
+                onPressed: () {
+                  // 保存选择的API和模型
+                  this.setState(() {
+                    _currentApi = tempSelectedApi;
+                    _currentModel = tempSelectedModel;
+                  });
+                  Navigator.of(context).pop();
+                  // 显示设置成功提示
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('设置已更新'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        });
+      },
+    );
   }
 
   /// 滚动到最底部
@@ -94,7 +304,23 @@ class ChatPageState extends State<ChatPage> {
 
     // 判断是否有可用 API 配置信息
     if (_apiConfig.isEmpty) {
-      TDToast.showText('无可用 API 配置信息', context: context);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('提示'),
+            content: Text('无可用 API 配置信息'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('确定'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
       return;
     }
 
@@ -210,8 +436,15 @@ class ChatPageState extends State<ChatPage> {
               // 增加顶部内边距
               padding: EdgeInsets.only(top: 10),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // 设置按钮
+                  IconButton(
+                    icon: Icon(Icons.settings),
+                    onPressed: () {
+                      _showSettingsDialog();
+                    },
+                  ),
                   // 新对话按钮
                   IconButton(
                     icon: Icon(Icons.new_label_outlined),
