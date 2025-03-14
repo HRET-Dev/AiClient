@@ -101,9 +101,12 @@ class ChatPageState extends State<ChatPage> {
   }
 
   /// 聊天页信息设置弹窗
-  void _showSettingsDialog() {
-    // 重新加载API配置
-    _loadApiConfig();
+  void _showSettingsDialog() async {
+    // 重新加载API配置并等待完成
+    await _loadApiConfig();
+
+    // 如果组件已卸载，则不继续执行
+    if (!mounted) return;
 
     // 如果API配置为空，提示用户
     if (_apiConfig.isEmpty) {
@@ -242,6 +245,9 @@ class ChatPageState extends State<ChatPage> {
                                       ),
                                     );
 
+                                    // 如果组件已卸载，则不继续执行
+                                    if (!mounted) return;
+
                                     // 判断返回结果
                                     if (result == true) {
                                       // 根据当前选择的API信息查询新的API信息
@@ -249,28 +255,25 @@ class ChatPageState extends State<ChatPage> {
                                           .getAiApiById(api.id);
 
                                       if (newApi != null) {
-                                        // 更新对应的 API 信息 和 模型列表信息
+                                        // 更新对应的 API 信息
                                         setState(() {
-                                          // 判断当前变化的信息是否为当前选择的信息 如果不是则查找列表中的 API 信息
-                                          if (newApi.id != _currentApi!.id) {
-                                            // 查询当前变化API 信息的索引
-                                            final currentApiIndex =
-                                                _apiConfig.indexWhere((api) =>
-                                                    api.id == _currentApi!.id);
-                                            // 判断是否找到对应的API信息
-                                            if (currentApiIndex != -1) {
-                                              // 更新列表中的API信息
-                                              _apiConfig[currentApiIndex] =
-                                                  newApi;
-                                            }
-                                          } else {
-                                            // 更新当前选择的API信息
-                                            _currentApi = newApi;
-                                            // 更新模型列表
-                                            _models = newApi.models.split(',');
-                                          }
+                                          // 查找当前修改的API在列表中的索引
+                                          final apiIndex =
+                                              _apiConfig.indexWhere(
+                                                  (item) => item.id == api.id);
 
-                                          api = newApi;
+                                          // 如果找到了，更新列表中的API信息
+                                          if (apiIndex != -1) {
+                                            _apiConfig[apiIndex] = newApi;
+
+                                            // 如果当前选中的就是被修改的API，也更新当前选中的API
+                                            if (tempSelectedApi.id == api.id) {
+                                              tempSelectedApi = newApi;
+                                            }
+
+                                            // 更新本地变量，确保UI刷新
+                                            api = newApi;
+                                          }
                                         });
                                       }
                                     }
@@ -358,6 +361,9 @@ class ChatPageState extends State<ChatPage> {
 
     // 判断是否有可用 API 配置信息
     if (_apiConfig.isEmpty) {
+      // 如果组件已卸载，则不继续执行
+      if (!mounted) return;
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
