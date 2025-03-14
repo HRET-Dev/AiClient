@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:ai_client/common/utils/chat_http.dart';
 import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/default_api_configs.dart';
@@ -339,12 +341,28 @@ class _ApiInfoState extends State<ApiInfo> {
       title: Text(''),
       content: _buildForm(),
       actions: [
+        // 删除按钮
+        TextButton(
+          onPressed: () async {
+            // 删除 AiApiData
+            final delete = await _aiApiService.deleteAiApiById(_aiApi.id);
+
+            // 检查组件是否仍然挂载
+            if (!mounted) return;
+
+            // 关闭对话框并返回失败结果
+            Navigator.of(context).pop(delete > 0 ? true : false);
+          },
+          child: Text(LocaleKeys.delete).tr(),
+        ),
+        // 取消按钮
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(tr(LocaleKeys.cancel)),
+          child: Text(LocaleKeys.cancel).tr(),
         ),
+        // 保存按钮
         TextButton(
-          onPressed: () {
+          onPressed: () async {
             // 验证表单
             if (_formKey.currentState?.validate() ?? false) {
               // 设置模型列表
@@ -352,20 +370,24 @@ class _ApiInfoState extends State<ApiInfo> {
               // 将 AiApiData 转换
               final aiApiCompanion = _aiApi.toCompanion(true);
 
+              bool result = false;
               // 判断是否有 ID
               if (_aiApi.id == 0) {
                 // 插入
-                _aiApiService.insertAiApi(aiApiCompanion);
+                result = await _aiApiService.insertAiApi(aiApiCompanion);
               } else {
                 // 更新
-                _aiApiService.updateAiApi(aiApiCompanion);
+                result = await _aiApiService.updateAiApi(aiApiCompanion);
               }
 
+              // 检查组件是否仍然挂载
+              if (!mounted) return;
+
               // 关闭对话框
-              Navigator.of(context).pop(true);
+              Navigator.of(context).pop(result);
             }
           },
-          child: Text(tr(LocaleKeys.save)),
+          child: Text(LocaleKeys.save).tr(),
         ),
       ],
     );

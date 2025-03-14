@@ -5,6 +5,7 @@
   "save": "保存",
   "cancel": "取消",
   "clear": "清除",
+  "delete": "删除",
   "this_feature_is_under_development": "该功能正在开发中",
   "please_select": "请选择",
   "chat_page": {
@@ -34,6 +35,7 @@
     }
   },
   "ai_api_model": {
+    "config": "API 配置",
     "api_name": "API 名称",
     "api_name_validate_failed": "API 名称不能为空",
     "api_provider": "API 服务商",

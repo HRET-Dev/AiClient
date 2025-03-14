@@ -5,6 +5,7 @@
   "save": "Save",
   "cancel": "Cancel",
   "clear": "Clear",
+  "delete": "Delete",
   "this_feature_is_under_development": "This feature is under development",
   "please_select": "Please select",
   "chat_page": {
@@ -34,6 +35,7 @@
     }
   },
   "ai_api_model": {
+    "config": "API Config",
     "api_name": "API Name",
     "api_name_validate_failed": "API name cannot be empty",
     "api_provider": "API Provider",

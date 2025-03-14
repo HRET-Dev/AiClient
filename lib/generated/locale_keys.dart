@@ -18,6 +18,9 @@ abstract class LocaleKeys {
   // 清除
   static const clear = 'clear';
 
+  /// 删除
+  static const delete = 'delete';
+
   /// 该功能正在开发中
   static const thisFeatureIsUnderDevelopment =
       'this_feature_is_under_development';
@@ -71,6 +74,9 @@ abstract class LocaleKeys {
 
   /// AI API 模型
   static const aiApiModel = 'ai_api_model';
+
+  /// API 配置
+  static const aiApiModelConfig = '$aiApiModel.config';
 
   /// API 名称
   static const aiApiModelApiName = '$aiApiModel.api_name';

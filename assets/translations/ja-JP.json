@@ -5,6 +5,7 @@
   "save": "保存",
   "cancel": "キャンセル",
   "clear": "クリア",
+  "delete": "削除",
   "this_feature_is_under_development": "この機能は開発中です",
   "please_select": "選択してください",
   "chat_page": {
@@ -34,6 +35,7 @@
     }
   },
   "ai_api_model": {
+    "config": "API 設定",
     "api_name": "API 名",
     "api_name_validate_failed": "API名を入力してください",
     "api_provider": "API プロバイダー",

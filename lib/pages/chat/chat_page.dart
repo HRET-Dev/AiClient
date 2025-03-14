@@ -4,6 +4,7 @@ import 'package:ai_client/generated/locale_keys.dart';
 import 'package:ai_client/models/chat_messages.dart';
 import 'package:ai_client/pages/chat/input.dart';
 import 'package:ai_client/pages/chat/message_list.dart';
+import 'package:ai_client/pages/settings/apis/api_info.dart';
 import 'package:ai_client/repositories/ai_api_repository.dart';
 import 'package:ai_client/services/ai_api_service.dart';
 import 'package:dio/dio.dart';
@@ -17,16 +18,23 @@ class ChatPage extends StatefulWidget {
 }
 
 class ChatPageState extends State<ChatPage> {
+  // 消息列表
   List<ChatMessage> _messages = [];
+
+  // 消息输入框控制器
   TextEditingController _messageController = TextEditingController();
+
+  // 滚动控制器
   final ScrollController _scrollController = ScrollController();
 
   // 使用 ChatHttp 调用 OpenAI 接口
   final ChatHttp _chatHttp = ChatHttp();
 
+  // 数据源
+  late final AppDatabase _appDatabase;
+
   /// AiApi 服务类
-  final AiApiService _aiApiService =
-      AiApiService(AiApiRepository(AppDatabase()));
+  late final AiApiService _aiApiService;
 
   // 加载到的 API 配置列表
   late List<AiApiData> _apiConfig;
@@ -46,6 +54,11 @@ class ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    // 初始化数据源
+    _appDatabase = AppDatabase();
+    // 初始化 AiApi 服务类
+    _aiApiService = AiApiService(AiApiRepository(_appDatabase));
+    // 初始化 API 配置
     _loadApiConfig();
   }
 
@@ -167,14 +180,16 @@ class ChatPageState extends State<ChatPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text('API配置',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center),
+                        child: Text(LocaleKeys.aiApiModelConfig,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center)
+                            .tr(),
                       ),
                       Expanded(
-                        child: Text('模型',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center),
+                        child: Text(LocaleKeys.aiApiModelModels,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center)
+                            .tr(),
                       ),
                     ],
                   ),
@@ -195,7 +210,7 @@ class ChatPageState extends State<ChatPage> {
                               shrinkWrap: true,
                               itemCount: _apiConfig.length,
                               itemBuilder: (context, index) {
-                                final api = _apiConfig[index];
+                                var api = _apiConfig[index];
                                 return ListTile(
                                   title: Text(api.serviceName),
                                   subtitle: Text(
@@ -204,6 +219,7 @@ class ChatPageState extends State<ChatPage> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   selected: tempSelectedApi.id == api.id,
+                                  // 单击事件
                                   onTap: () {
                                     setState(() {
                                       tempSelectedApi = api;
@@ -214,6 +230,50 @@ class ChatPageState extends State<ChatPage> {
                                           ? newModels[0]
                                           : "";
                                     });
+                                  },
+                                  // 长按事件
+                                  onLongPress: () async {
+                                    // 长按时 通过弹窗打开 API 详情页面
+                                    final result = await showDialog(
+                                      context: context,
+                                      builder: (context) => ApiInfo(
+                                        aiApi: api,
+                                        appDatabase: _appDatabase,
+                                      ),
+                                    );
+
+                                    // 判断返回结果
+                                    if (result == true) {
+                                      // 根据当前选择的API信息查询新的API信息
+                                      final newApi = await _aiApiService
+                                          .getAiApiById(api.id);
+
+                                      if (newApi != null) {
+                                        // 更新对应的 API 信息 和 模型列表信息
+                                        setState(() {
+                                          // 判断当前变化的信息是否为当前选择的信息 如果不是则查找列表中的 API 信息
+                                          if (newApi.id != _currentApi!.id) {
+                                            // 查询当前变化API 信息的索引
+                                            final currentApiIndex =
+                                                _apiConfig.indexWhere((api) =>
+                                                    api.id == _currentApi!.id);
+                                            // 判断是否找到对应的API信息
+                                            if (currentApiIndex != -1) {
+                                              // 更新列表中的API信息
+                                              _apiConfig[currentApiIndex] =
+                                                  newApi;
+                                            }
+                                          } else {
+                                            // 更新当前选择的API信息
+                                            _currentApi = newApi;
+                                            // 更新模型列表
+                                            _models = newApi.models.split(',');
+                                          }
+
+                                          api = newApi;
+                                        });
+                                      }
+                                    }
                                   },
                                 );
                               },
@@ -255,6 +315,7 @@ class ChatPageState extends State<ChatPage> {
               TextButton(
                 child: Text(tr(LocaleKeys.cancel)),
                 onPressed: () {
+                  // 关闭弹窗
                   Navigator.of(context).pop();
                 },
               ),
@@ -267,13 +328,6 @@ class ChatPageState extends State<ChatPage> {
                     _currentModel = tempSelectedModel;
                   });
                   Navigator.of(context).pop();
-                  // 显示设置成功提示
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('设置已更新'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
                 },
               ),
             ],

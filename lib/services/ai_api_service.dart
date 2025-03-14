@@ -76,8 +76,11 @@ class AiApiService {
     try {
       // 获取当前时间戳
       final now = DateTime.now();
-      // 设置创建时间和更新时间
-      aiApi = aiApi.copyWith(createdTime: Value(now), updatedTime: Value(now));
+      // 设置创建时间和更新时间，并将id设置为null
+      aiApi = aiApi.copyWith(
+          id: const Value.absent(),
+          createdTime: Value(now),
+          updatedTime: Value(now));
       // 调用数据层方法插入API记录
       await aiApiRepository.insertAiApi(aiApi);
       // 插入成功返回true
