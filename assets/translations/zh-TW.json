@@ -6,21 +6,33 @@
   "cancel": "取消",
   "clear": "清除",
   "delete": "刪除",
+  "confirm": "確認",
+  "confirm_delete": "確認刪除",
+  "confirm_delete_message": "確定要刪除此API配置嗎？此操作無法撤銷。",
+  "share": "分享",
+  "shared": "已分享",
+  "import": "導入",
+  "clipboard_empty": "剪貼板為空",
   "this_feature_is_under_development": "該功能正在開發中",
   "please_select": "請選擇",
   "chat_page": {
-    "new_chat": "新對話",
+    "new_chat": "新聊天",
     "thinking": "正在思考中...",
     "copy_success": "複製成功",
-    "input_hintText": "在這裡輸入訊息..."
+    "input_hintText": "在這裡輸入消息..."
   },
   "settings_page": {
     "api_setting": {
       "api_manager": "API 管理",
       "add_api": "添加 API",
+      "edit_api": "編輯 API",
       "delete_api": "刪除 API",
       "add_success": "API 添加成功",
-      "add_failed": "API 添加失敗"
+      "add_failed": "API 添加失敗",
+      "api_config_copied_to_clipboard": "配置信息已複製到剪貼板",
+      "invalid_api_config_string": "無效的配置信息格式",
+      "failed_to_decrypt_api_config": "配置信息解析失敗",
+      "api_config_imported": "配置信息導入成功"
     },
     "language_setting": {
       "language_button_text": "語言",
@@ -29,7 +41,7 @@
         "zh_CN": "簡體中文",
         "zh_TW": "繁體中文",
         "en_US": "英語（美國）",
-        "ja_JP": "日文",
+        "ja_JP": "日語",
         "ko_KR": "韓語"
       }
     }

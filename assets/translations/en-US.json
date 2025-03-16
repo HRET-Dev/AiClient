@@ -6,21 +6,33 @@
   "cancel": "Cancel",
   "clear": "Clear",
   "delete": "Delete",
+  "confirm": "Confirm",
+  "confirm_delete": "Confirm Delete",
+  "confirm_delete_message": "Are you sure you want to delete this API configuration? This action cannot be undone.",
+  "share": "Share",
+  "shared": "Shared",
+  "import": "Import",
+  "clipboard_empty": "Clipboard is empty",
   "this_feature_is_under_development": "This feature is under development",
   "please_select": "Please select",
   "chat_page": {
     "new_chat": "New Chat",
     "thinking": "Thinking...",
-    "copy_success": "Copied to clipboard",
-    "input_hintText": "Enter message here..."
+    "copy_success": "Copied successfully",
+    "input_hintText": "Type a message here..."
   },
   "settings_page": {
     "api_setting": {
-      "api_manager": "API Manager",
+      "api_manager": "API Management",
       "add_api": "Add API",
+      "edit_api": "Edit API",
       "delete_api": "Delete API",
-      "add_success": "API added success",
-      "add_failed": "API adding failed"
+      "add_success": "API added successfully",
+      "add_failed": "Failed to add API",
+      "api_config_copied_to_clipboard": "Configuration copied to clipboard",
+      "invalid_api_config_string": "Invalid configuration format",
+      "failed_to_decrypt_api_config": "Failed to parse configuration",
+      "api_config_imported": "Configuration imported successfully"
     },
     "language_setting": {
       "language_button_text": "Language",
@@ -35,12 +47,12 @@
     }
   },
   "ai_api_model": {
-    "config": "API Config",
+    "config": "API Configuration",
     "api_name": "API Name",
     "api_name_validate_failed": "API name cannot be empty",
     "api_provider": "API Provider",
     "api_type": "API Service Type",
-    "api_base_url": "API Base URL",
+    "api_base_url": "API URL",
     "api_base_url_validate_failed": "Please enter a valid API URL",
     "api_key": "API Key",
     "models": "Model List",

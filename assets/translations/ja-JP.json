@@ -6,28 +6,40 @@
   "cancel": "キャンセル",
   "clear": "クリア",
   "delete": "削除",
+  "confirm": "確認",
+  "confirm_delete": "削除の確認",
+  "confirm_delete_message": "このAPI設定を削除してもよろしいですか？この操作は元に戻せません。",
+  "share": "共有",
+  "shared": "共有済み",
+  "import": "インポート",
+  "clipboard_empty": "クリップボードが空です",
   "this_feature_is_under_development": "この機能は開発中です",
   "please_select": "選択してください",
   "chat_page": {
     "new_chat": "新しいチャット",
     "thinking": "考え中...",
     "copy_success": "コピー成功",
-    "input_hintText": "メッセージを入力してください..."
+    "input_hintText": "ここにメッセージを入力..."
   },
   "settings_page": {
     "api_setting": {
       "api_manager": "API 管理",
-      "add_api": "API を追加",
-      "delete_api": "API を削除",
+      "add_api": "API 追加",
+      "edit_api": "API 編集",
+      "delete_api": "API 削除",
       "add_success": "API 追加成功",
-      "add_failed": "API 追加失敗"
+      "add_failed": "API 追加失敗",
+      "api_config_copied_to_clipboard": "設定情報がクリップボードにコピーされました",
+      "invalid_api_config_string": "無効な設定情報形式",
+      "failed_to_decrypt_api_config": "設定情報の解析に失敗しました",
+      "api_config_imported": "設定情報のインポートに成功しました"
     },
     "language_setting": {
       "language_button_text": "言語",
       "select_language": "言語を選択",
       "language_list": {
-        "zh_CN": "簡体中国語",
-        "zh_TW": "繁体中国語",
+        "zh_CN": "簡体字中国語",
+        "zh_TW": "繁体字中国語",
         "en_US": "英語（米国）",
         "ja_JP": "日本語",
         "ko_KR": "韓国語"
@@ -37,12 +49,12 @@
   "ai_api_model": {
     "config": "API 設定",
     "api_name": "API 名",
-    "api_name_validate_failed": "API名を入力してください",
-    "api_provider": "API プロバイダー",
-    "api_type": "API サービスタイプ",
+    "api_name_validate_failed": "API名は空にできません",
+    "api_provider": "APIプロバイダー",
+    "api_type": "APIサービスタイプ",
     "api_base_url": "API アドレス",
     "api_base_url_validate_failed": "有効なAPIアドレスを入力してください",
-    "api_key": "API キー",
+    "api_key": "APIキー",
     "models": "モデルリスト",
     "models_validate_failed": "モデルリストは空にできません"
   }

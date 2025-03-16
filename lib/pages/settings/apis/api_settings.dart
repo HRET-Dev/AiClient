@@ -35,7 +35,7 @@ class _ApiSettings extends State<ApiSettings> {
   Widget _addButton() {
     return IconButton(
       icon: const Icon(Icons.add),
-      tooltip: tr(LocaleKeys.settingPageApiSettingAddApi),
+      tooltip: tr(LocaleKeys.addApi),
       onPressed: () async {
         // 从 DefaultApiConfigs 获取第一个支持的 API 提供商作为默认值
         final defaultProvider =

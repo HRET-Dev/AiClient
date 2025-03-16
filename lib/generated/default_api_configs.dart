@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:ai_client/database/app_database.dart';
 import 'package:drift/drift.dart';
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 /// API 配置类
 class DefaultApiConfigs {
@@ -201,6 +202,97 @@ class DefaultApiConfigs {
       if (additionalHeaders != null) {
         headers.addAll(additionalHeaders);
       }
+    }
+  }
+
+  /// 将API配置加密为可分享的字符串
+  ///
+  /// [apiConfig] API配置对象
+  /// 返回加密后的字符串
+  static String encryptApiConfig(AiApiData apiConfig) {
+    // 创建一个包含必要信息的Map
+    final configMap = {
+      'serviceName': apiConfig.serviceName,
+      'provider': apiConfig.provider,
+      'baseUrl': apiConfig.baseUrl,
+      'apiKey': apiConfig.apiKey,
+      'models': apiConfig.models,
+    };
+
+    // 转换为JSON字符串
+    final jsonString = jsonEncode(configMap);
+
+    // Base64编码
+    final base64Str = base64Encode(utf8.encode(jsonString));
+
+    // 添加简单的校验和 (使用前8位字符的哈希)
+    final checksum =
+        sha256.convert(utf8.encode(base64Str)).toString().substring(0, 8);
+
+    return 'AICFG_$checksum$base64Str';
+  }
+
+  /// 解密API配置字符串
+  ///
+  /// [encryptedString] 加密后的配置字符串
+  /// 返回解密后的API配置对象，如果解密失败返回null
+  static AiApiCompanion? decryptApiConfig(String encryptedString) {
+    try {
+      // 验证前缀
+      if (!encryptedString.startsWith('AICFG_')) {
+        return null;
+      }
+
+      // 提取校验和和加密内容
+      final checksum = encryptedString.substring(6, 14);
+      final content = encryptedString.substring(14);
+
+      // 验证校验和
+      final calculatedChecksum =
+          sha256.convert(utf8.encode(content)).toString().substring(0, 8);
+      if (checksum != calculatedChecksum) {
+        return null; // 校验和不匹配
+      }
+
+      // 解码
+      final jsonString = utf8.decode(base64Decode(content));
+      final configMap = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      // 创建API配置对象
+      return AiApiCompanion(
+        serviceName: Value(configMap['serviceName'] as String),
+        provider: Value(configMap['provider'] as String),
+        baseUrl: Value(configMap['baseUrl'] as String),
+        apiKey: Value(configMap['apiKey'] as String),
+        models: Value(configMap['models'] as String),
+        isActive: const Value(true),
+        createdTime: Value(DateTime.now()),
+        updatedTime: Value(DateTime.now()),
+      );
+    } catch (e) {
+      print('解密API配置失败: $e');
+      return null;
+    }
+  }
+
+  /// 验证API配置字符串是否有效
+  ///
+  /// [encryptedString] 加密后的配置字符串
+  /// 返回是否有效
+  static bool isValidApiConfigString(String encryptedString) {
+    if (!encryptedString.startsWith('AICFG_') || encryptedString.length < 15) {
+      return false;
+    }
+
+    try {
+      final checksum = encryptedString.substring(6, 14);
+      final content = encryptedString.substring(14);
+      final calculatedChecksum =
+          sha256.convert(utf8.encode(content)).toString().substring(0, 8);
+      return checksum == calculatedChecksum;
+    } catch (e) {
+      print('验证API配置字符串失败: $e');
+      return false;
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:ai_client/repositories/ai_api_repository.dart';
 import 'package:ai_client/services/ai_api_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// API 信息页面
 /// 添加、修改、删除一体
@@ -41,8 +42,15 @@ class _ApiInfoState extends State<ApiInfo> {
   // 表单key
   final _formKey = GlobalKey<FormState>();
 
-  // 模型列表文本控制器
+  // 文本控制器
+  late TextEditingController _serviceNameController;
+  late TextEditingController _baseUrlController;
+  late TextEditingController _apiKeyController;
   late TextEditingController _modelsController;
+
+  // 状态标志
+  bool _isShared = false;
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -51,30 +59,150 @@ class _ApiInfoState extends State<ApiInfo> {
     _aiApi = widget.aiApi;
     // 初始化 AiApi 服务类
     _aiApiService = AiApiService(AiApiRepository(widget.appDatabase));
-    // 初始化模型列表控制器
+
+    // 初始化所有控制器
+    _serviceNameController = TextEditingController(text: _aiApi.serviceName);
+    _baseUrlController = TextEditingController(text: _aiApi.baseUrl);
+    _apiKeyController = TextEditingController(text: _aiApi.apiKey);
     _modelsController = TextEditingController(text: _aiApi.models);
   }
 
   @override
   void dispose() {
-    // 释放控制器资源
+    // 释放所有控制器资源
+    _serviceNameController.dispose();
+    _baseUrlController.dispose();
+    _apiKeyController.dispose();
     _modelsController.dispose();
     super.dispose();
   }
 
+  // 显示提示消息
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   // 获取当前模型列表信息 以字符串形式展示 英文逗号分隔
   Future<String> _getModelsString() async {
-    // 使用 chatHttp 获取模型列表
-    final repose = await _chatHttp.getModelList(
+    try {
+      // 使用 chatHttp 获取模型列表
+      final response = await _chatHttp.getModelList(
         baseUrl: _aiApi.baseUrl,
         provider: _aiApi.provider,
-        apiKey: _aiApi.apiKey);
-    // 获取模型列表
-    final list = repose.data["data"];
-    // 解析模型列表
-    final models = list?.map((e) => e['id']).join(',') ?? '';
-    // 返回模型列表
-    return models;
+        apiKey: _aiApi.apiKey,
+      );
+
+      // 获取模型列表
+      final list = response.data["data"];
+      // 解析模型列表
+      return list?.map((e) => e['id']).join(',') ?? '';
+    } catch (e) {
+      _showSnackBar("获取模型列表失败: $e");
+      return '';
+    }
+  }
+
+  // 分享API配置
+  Future<void> _shareApiConfig() async {
+    if (_isProcessing) return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      // 更新模型列表
+      _aiApi = _aiApi.copyWith(models: _modelsController.text);
+
+      // 生成加密的配置字符串
+      final configString = DefaultApiConfigs.encryptApiConfig(_aiApi);
+
+      // 复制到剪贴板
+      await Clipboard.setData(ClipboardData(text: configString));
+
+      // 更新状态
+      setState(() {
+        _isShared = true;
+        _isProcessing = false;
+      });
+
+      // 显示提示
+      _showSnackBar("配置信息已复制");
+
+      // 3秒后重置状态
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() => _isShared = false);
+        }
+      });
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      _showSnackBar("复制配置失败: $e");
+    }
+  }
+
+  // 导入API配置
+  Future<void> _importApiConfig() async {
+    if (_isProcessing) return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      // 从剪贴板获取数据
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData == null ||
+          clipboardData.text == null ||
+          clipboardData.text!.isEmpty) {
+        _showSnackBar("剪贴板为空");
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      final configString = clipboardData.text!.trim();
+
+      // 验证配置字符串
+      if (!DefaultApiConfigs.isValidApiConfigString(configString)) {
+        _showSnackBar("无效的配置信息格式");
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      // 解密配置
+      final apiConfig = DefaultApiConfigs.decryptApiConfig(configString);
+      if (apiConfig == null) {
+        _showSnackBar("配置信息解析失败");
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      // 更新当前表单
+      setState(() {
+        _aiApi = _aiApi.copyWith(
+          serviceName: apiConfig.serviceName.value,
+          provider: apiConfig.provider.value,
+          baseUrl: apiConfig.baseUrl.value,
+          apiKey: apiConfig.apiKey.value,
+          models: apiConfig.models.value,
+        );
+
+        // 更新所有控制器文本
+        _serviceNameController.text = apiConfig.serviceName.value;
+        _baseUrlController.text = apiConfig.baseUrl.value;
+        _apiKeyController.text = apiConfig.apiKey.value;
+        _modelsController.text = apiConfig.models.value;
+
+        _isProcessing = false;
+      });
+
+      // 显示提示
+      _showSnackBar("配置信息导入成功");
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      _showSnackBar("导入配置失败: $e");
+    }
   }
 
   // 构建信息表单
@@ -84,6 +212,7 @@ class _ApiInfoState extends State<ApiInfo> {
 
     // 构建表单
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(top: 16),
       child: Form(
         key: _formKey,
         child: Column(
@@ -94,7 +223,7 @@ class _ApiInfoState extends State<ApiInfo> {
             DropdownButtonFormField<String>(
               value: _aiApi.provider,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 labelText: tr(LocaleKeys.aiApiModelApiProvider),
               ),
               items: defaultServerType.map((String value) {
@@ -112,13 +241,13 @@ class _ApiInfoState extends State<ApiInfo> {
               },
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // 服务名称
             TextFormField(
-              initialValue: _aiApi.serviceName,
+              controller: _serviceNameController,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 labelText: tr(LocaleKeys.aiApiModelApiName),
               ),
               validator: (value) {
@@ -129,19 +258,18 @@ class _ApiInfoState extends State<ApiInfo> {
               },
               onChanged: (value) {
                 setState(() {
-                  // 更新服务名称
                   _aiApi = _aiApi.copyWith(serviceName: value);
                 });
               },
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // 基础URL
             TextFormField(
-              initialValue: _aiApi.baseUrl,
+              controller: _baseUrlController,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 labelText: tr(LocaleKeys.aiApiModelApiBaseUrl),
               ),
               validator: (value) {
@@ -156,19 +284,18 @@ class _ApiInfoState extends State<ApiInfo> {
               },
               onChanged: (value) {
                 setState(() {
-                  // 更新基础URL
                   _aiApi = _aiApi.copyWith(baseUrl: value);
                 });
               },
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // API密钥
             TextFormField(
-              initialValue: _aiApi.apiKey,
+              controller: _apiKeyController,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 labelText: tr(LocaleKeys.aiApiModelApiKey),
               ),
               onChanged: (value) {
@@ -178,150 +305,163 @@ class _ApiInfoState extends State<ApiInfo> {
               },
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // 模型列表
             TextFormField(
               controller: _modelsController,
               maxLines: null,
               decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: tr(LocaleKeys.aiApiModelModels),
-
-                  // 尾部获取模型列表按钮、编辑模型列表按钮
-                  suffixIcon: Column(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.refresh),
-                        onPressed: () async {
-                          // 判断 baseUrl 是否为空
-                          if (_aiApi.baseUrl.isEmpty) {
-                            // 空URL 不做任何操作
-                            return;
-                          }
-                          // 获取模型列表
-                          final models = await _getModelsString();
-                          // 更新控制器的文本
-                          _modelsController.text = models;
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          // 判断列表是否为空
-                          if (_modelsController.text.isEmpty) {
-                            // 空列表 不做任何操作
-                            return;
-                          }
-
-                          // 模型列表 将字符串切割为列表
-                          final models = _modelsController.text.split(',');
-                          // 底部抽屉展示模型列表 通过列表复选框展示选择
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) {
-                              // 用于跟踪每个模型的选中状态
-                              Map<String, bool> modelStates = {};
-                              // 初始化所有模型的状态
-                              for (var model in models) {
-                                // 初始化每个模型的状态
-                                modelStates[model] =
-                                    _modelsController.text.contains(model);
-                              }
-
-                              return StatefulBuilder(
-                                builder: (context, setState) {
-                                  return Column(
-                                    children: [
-                                      // 标题
-                                      Container(
-                                        padding:
-                                            EdgeInsets.symmetric(vertical: 16),
-                                        child: Text(LocaleKeys.aiApiModelModels)
-                                            .tr(),
-                                      ),
-                                      // 模型列表
-                                      Expanded(
-                                        child: ListView.builder(
-                                          itemCount: models.length,
-                                          itemBuilder: (context, index) {
-                                            final model = models[index];
-                                            return CheckboxListTile(
-                                              title: Text(model),
-                                              value: modelStates[model],
-                                              onChanged: (bool? value) {
-                                                setState(() {
-                                                  modelStates[model] =
-                                                      value ?? false;
-                                                });
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      // 底部按钮
-                                      Padding(
-                                        padding: EdgeInsets.all(16),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            // 清除按钮
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                // 清除所有模型的选中状态
-                                                setState(() {
-                                                  modelStates = {
-                                                    for (var model in models)
-                                                      model: false
-                                                  };
-                                                });
-                                              },
-                                              child:
-                                                  Text(LocaleKeys.clear).tr(),
-                                            ),
-                                            const SizedBox(width: 20),
-                                            // 取消按钮
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                              child:
-                                                  Text(LocaleKeys.cancel).tr(),
-                                            ),
-                                            const SizedBox(width: 20),
-                                            // 保存按钮
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                // 获取选中的模型列表
-                                                final selectedModels =
-                                                    modelStates.entries
-                                                        .where(
-                                                            (entry) =>
-                                                                entry.value)
-                                                        .map((entry) =>
-                                                            entry.key)
-                                                        .toList();
-                                                // 更新控制器文本
-                                                _modelsController.text =
-                                                    selectedModels.join(',');
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: Text(LocaleKeys.save).tr(),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
+                border: const OutlineInputBorder(),
+                labelText: tr(LocaleKeys.aiApiModelModels),
+                suffixIcon: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 刷新模型列表按钮
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      tooltip: '获取模型列表',
+                      onPressed: () async {
+                        // 判断 baseUrl 是否为空
+                        if (_aiApi.baseUrl.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("请先填写API基础URL"),
+                              duration: Duration(seconds: 2),
+                            ),
                           );
-                        },
-                      ),
-                    ],
-                  )),
+                          return;
+                        }
+
+                        // 获取模型列表
+                        final models = await _getModelsString();
+
+                        // 更新控制器的文本
+                        setState(() {
+                          _modelsController.text = models;
+                        });
+                      },
+                    ),
+                    // 编辑模型列表按钮
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      tooltip: '编辑模型列表',
+                      onPressed: () {
+                        // 判断列表是否为空
+                        if (_modelsController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("模型列表为空"),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          return;
+                        }
+
+                        // 模型列表 将字符串切割为列表
+                        final models = _modelsController.text.split(',');
+
+                        // 底部抽屉展示模型列表
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            // 用于跟踪每个模型的选中状态
+                            Map<String, bool> modelStates = {};
+                            // 初始化所有模型的状态
+                            for (var model in models) {
+                              modelStates[model] =
+                                  _modelsController.text.contains(model);
+                            }
+
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                return Column(
+                                  children: [
+                                    // 标题
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
+                                      child: Text(LocaleKeys.aiApiModelModels)
+                                          .tr(),
+                                    ),
+                                    // 模型列表
+                                    Expanded(
+                                      child: ListView.builder(
+                                        itemCount: models.length,
+                                        itemBuilder: (context, index) {
+                                          final model = models[index];
+                                          return CheckboxListTile(
+                                            title: Text(model),
+                                            value: modelStates[model],
+                                            onChanged: (bool? value) {
+                                              setState(() {
+                                                modelStates[model] =
+                                                    value ?? false;
+                                              });
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    // 底部按钮
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          // 清除按钮
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                modelStates = {
+                                                  for (var model in models)
+                                                    model: false
+                                                };
+                                              });
+                                            },
+                                            child: Text(LocaleKeys.clear).tr(),
+                                          ),
+                                          const SizedBox(width: 20),
+                                          // 取消按钮
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(LocaleKeys.cancel).tr(),
+                                          ),
+                                          const SizedBox(width: 20),
+                                          // 保存按钮
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              // 获取选中的模型列表
+                                              final selectedModels = modelStates
+                                                  .entries
+                                                  .where((entry) => entry.value)
+                                                  .map((entry) => entry.key)
+                                                  .toList();
+                                              // 更新控制器文本
+                                              _modelsController.text =
+                                                  selectedModels.join(',');
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(LocaleKeys.save).tr(),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return tr(LocaleKeys.aiApiModelModelsValidateFailed);
@@ -338,56 +478,123 @@ class _ApiInfoState extends State<ApiInfo> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(''),
+      title: Text(_aiApi.id == 0 ? LocaleKeys.addApi : LocaleKeys.editApi).tr(),
       content: _buildForm(),
       actions: [
-        // 删除按钮
-        TextButton(
-          onPressed: () async {
-            // 删除 AiApiData
-            final delete = await _aiApiService.deleteAiApiById(_aiApi.id);
+        // 左侧按钮组
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 分享按钮
+            Tooltip(
+              message: tr(LocaleKeys.share),
+              child: IconButton(
+                icon: Icon(
+                  _isShared ? Icons.check : Icons.share,
+                  size: 20,
+                  color: _isShared ? Colors.green : null,
+                ),
+                onPressed: _shareApiConfig,
+              ),
+            ),
+            // 导入按钮
+            Tooltip(
+              message: tr(LocaleKeys.import),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.paste,
+                  size: 20,
+                ),
+                onPressed: _importApiConfig,
+              ),
+            ),
+            // 删除按钮 (仅当编辑现有API时显示)
+            if (_aiApi.id != 0)
+              Tooltip(
+                message: tr(LocaleKeys.delete),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.delete,
+                    size: 20,
+                  ),
+                  onPressed: () async {
+                    // 删除确认对话框
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(tr(LocaleKeys.confirmDelete)),
+                        content: Text(tr(LocaleKeys.confirmDeleteMessage)),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(tr(LocaleKeys.cancel)),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(tr(LocaleKeys.confirm)),
+                          ),
+                        ],
+                      ),
+                    );
 
-            // 检查组件是否仍然挂载
-            if (!mounted) return;
+                    if (confirm != true) return;
 
-            // 关闭对话框并返回失败结果
-            Navigator.of(context).pop(delete > 0 ? true : false);
-          },
-          child: Text(LocaleKeys.delete).tr(),
+                    // 删除 AiApiData
+                    final delete =
+                        await _aiApiService.deleteAiApiById(_aiApi.id);
+
+                    // 检查组件是否仍然挂载
+                    if (!mounted) return;
+
+                    // 关闭对话框并返回结果
+                    Navigator.of(context).pop(delete > 0 ? true : false);
+                  },
+                ),
+              ),
+          ],
         ),
-        // 取消按钮
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(LocaleKeys.cancel).tr(),
-        ),
-        // 保存按钮
-        TextButton(
-          onPressed: () async {
-            // 验证表单
-            if (_formKey.currentState?.validate() ?? false) {
-              // 设置模型列表
-              _aiApi = _aiApi.copyWith(models: _modelsController.text);
-              // 将 AiApiData 转换
-              final aiApiCompanion = _aiApi.toCompanion(true);
+        // 右侧按钮组
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 取消按钮
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(LocaleKeys.cancel).tr(),
+            ),
+            const SizedBox(width: 8),
+            // 保存按钮
+            ElevatedButton(
+              onPressed: () async {
+                // 验证表单
+                if (_formKey.currentState?.validate() ?? false) {
+                  // 设置模型列表
+                  _aiApi = _aiApi.copyWith(models: _modelsController.text);
+                  // 将 AiApiData 转换
+                  final aiApiCompanion = _aiApi.toCompanion(true);
 
-              bool result = false;
-              // 判断是否有 ID
-              if (_aiApi.id == 0) {
-                // 插入
-                result = await _aiApiService.insertAiApi(aiApiCompanion);
-              } else {
-                // 更新
-                result = await _aiApiService.updateAiApi(aiApiCompanion);
-              }
+                  bool result = false;
+                  // 判断是否有 ID
+                  if (_aiApi.id == 0) {
+                    // 插入
+                    result = await _aiApiService.insertAiApi(aiApiCompanion);
+                  } else {
+                    // 更新
+                    result = await _aiApiService.updateAiApi(aiApiCompanion);
+                  }
 
-              // 检查组件是否仍然挂载
-              if (!mounted) return;
+                  // 检查组件是否仍然挂载
+                  if (!mounted) return;
 
-              // 关闭对话框
-              Navigator.of(context).pop(result);
-            }
-          },
-          child: Text(LocaleKeys.save).tr(),
+                  // 关闭对话框
+                  Navigator.of(context).pop(result);
+                }
+              },
+              child: Text(LocaleKeys.save).tr(),
+            ),
+          ],
         ),
       ],
     );
