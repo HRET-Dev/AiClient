@@ -14,3 +14,10 @@ AiClient 是一个跨平台的 AI 聊天客户端应用程序，支持多种 AI 
 
 - 使用 Flutter/Dart 开发
 - 支持 Android、iOS、Windows、macOS 和 Linux 平台
+
+## TODO
+
+- 历史记录
+- 消息重发
+- 消息删除
+- 聊天附件功能
