@@ -2,6 +2,11 @@
 
 AiClient 是一个跨平台的 AI 聊天客户端应用程序，支持多种 AI API 服务商和多语言界面。
 
+## 功能预览
+![image](/README/chat.png) 
+![image](/README/setting.png)
+![image](/README/setting_api.png)
+
 ## 功能特点
 
 - **多 API 支持**：支持连接多种 AI 服务提供商的 API
