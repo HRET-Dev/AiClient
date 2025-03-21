@@ -113,6 +113,32 @@ class ChatHttp {
   /// [model]：模型名称
   /// [message]：用户发送的消息内容
   /// [historys]：历史消息列表，用于上下文
+  /// [useStream]：是否使用流式请求，默认为 true
+  Future<dynamic> sendChatRequestAuto({
+    required AiApiData api,
+    required String model,
+    required String message,
+    List<ChatMessage>? historys,
+    bool useStream = true,
+  }) async {
+    // 根据 useStream 参数决定使用哪种请求方式
+    if (useStream) {
+      return sendStreamChatRequest(
+        api: api,
+        model: model,
+        message: message,
+        historys: historys,
+      );
+    } else {
+      return sendChatRequest(
+        api: api,
+        model: model,
+        message: message,
+        historys: historys,
+      );
+    }
+  }
+
   Future<Stream<String>> sendStreamChatRequest({
     required AiApiData api,
     required String model,

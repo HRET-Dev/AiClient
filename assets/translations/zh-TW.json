@@ -15,6 +15,11 @@
   "clipboard_empty": "剪貼板為空",
   "this_feature_is_under_development": "該功能正在開發中",
   "please_select": "請選擇",
+  "sidebar": {
+    "show": "顯示側邊欄",
+    "hide": "隱藏側邊欄",
+    "app_name": "AI 客戶端"
+  },
   "chat_page": {
     "new_chat": "新聊天",
     "thinking": "正在思考中...",

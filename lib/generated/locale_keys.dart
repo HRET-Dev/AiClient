@@ -52,6 +52,19 @@ abstract class LocaleKeys {
 
   /// 请选择
   static const pleaseSelect = 'please_select';
+  
+  //===================================================
+  // 侧边栏 (Sidebar)
+  //===================================================
+  
+  /// 侧边栏 - 显示侧边栏
+  static const sidebarShow = 'sidebar.show';
+  
+  /// 侧边栏 - 隐藏侧边栏
+  static const sidebarHide = 'sidebar.hide';
+  
+  /// 侧边栏 - 应用名称
+  static const sidebarAppName = 'sidebar.app_name';
 
   //===================================================
   // 聊天页面 (Chat Page)

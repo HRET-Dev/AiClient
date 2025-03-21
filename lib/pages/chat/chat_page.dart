@@ -13,6 +13,9 @@ import 'package:flutter/material.dart';
 
 /// 聊天页面，同时集成了 HTTP 请求和 SQLite 加载 API 配置信息
 class ChatPage extends StatefulWidget {
+  // 添加构造函数，接收 key 参数s
+  const ChatPage({super.key});
+
   @override
   ChatPageState createState() => ChatPageState();
 }
@@ -50,6 +53,9 @@ class ChatPageState extends State<ChatPage> {
 
   // 是否正在等待回复
   bool _isWaitingResponse = false;
+
+  // 是否使用流式请求
+  bool _useStream = false;
 
   @override
   void initState() {
@@ -158,6 +164,7 @@ class ChatPageState extends State<ChatPage> {
     // 创建临时变量用于对话框中的选择
     AiApiData tempSelectedApi = _currentApi!;
     String tempSelectedModel = _currentModel;
+    bool tempUseStream = _useStream;
 
     showDialog(
       context: context,
@@ -329,6 +336,7 @@ class ChatPageState extends State<ChatPage> {
                   this.setState(() {
                     _currentApi = tempSelectedApi;
                     _currentModel = tempSelectedModel;
+                    _useStream = tempUseStream;
                   });
                   Navigator.of(context).pop();
                 },
@@ -422,42 +430,64 @@ class ChatPageState extends State<ChatPage> {
     });
 
     try {
-      final responseStream = await _chatHttp.sendStreamChatRequest(
-          api: _currentApi!,
-          model: _currentModel,
-          message: userMessage,
-          historys: newMessages);
+      if (_useStream) {
+        // 流式请求处理
+        final responseStream = await _chatHttp.sendStreamChatRequest(
+            api: _currentApi!,
+            model: _currentModel,
+            message: userMessage,
+            historys: newMessages);
 
-      // 用于累积AI回复的内容
-      String accumulatedContent = "";
+        // 用于累积AI回复的内容
+        String accumulatedContent = "";
 
-      // 处理流
-      responseStream.listen((content) {
-        // 累积内容
-        accumulatedContent += content;
+        // 处理流
+        responseStream.listen((content) {
+          // 累积内容
+          accumulatedContent += content;
+
+          // 更新消息内容
+          setState(() {
+            aiMessage.content = accumulatedContent;
+          });
+          // 滚动到最底部
+          _scrollToBottom();
+        }, onDone: () {
+          // 流结束时的处理
+          setState(() {
+            _isWaitingResponse = false; // 清除等待状态
+          });
+          // 滚动到最底部
+          _scrollToBottom();
+        }, onError: (error) {
+          // 错误处理
+          setState(() {
+            aiMessage.content = "发生错误: $error";
+            _isWaitingResponse = false; // 清除等待状态
+          });
+          // 滚动到最底部
+          _scrollToBottom();
+        });
+      } else {
+        // 非流式请求处理
+        final response = await _chatHttp.sendChatRequest(
+            api: _currentApi!,
+            model: _currentModel,
+            message: userMessage,
+            historys: newMessages);
+
+        // 从响应中提取内容
+        final content =
+            response.data['choices'][0]['message']['content'] as String;
 
         // 更新消息内容
         setState(() {
-          aiMessage.content = accumulatedContent;
-        });
-        // 滚动到最底部
-        _scrollToBottom();
-      }, onDone: () {
-        // 流结束时的处理
-        setState(() {
+          aiMessage.content = content;
           _isWaitingResponse = false; // 清除等待状态
         });
         // 滚动到最底部
         _scrollToBottom();
-      }, onError: (error) {
-        // 错误处理
-        setState(() {
-          aiMessage.content = "发生错误: $error";
-          _isWaitingResponse = false; // 清除等待状态
-        });
-        // 滚动到最底部
-        _scrollToBottom();
-      });
+      }
     } catch (e) {
       // 控制台打印错误信息
       print('请求出错: $e');
@@ -484,53 +514,156 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
+  /// 清除聊天记录
+  void clearChat() {
+    // 确保只有在组件已挂载时才调用 setState
+    if (mounted) {
+      setState(() {
+        _messages.clear();
+      });
+    } else {
+      // 如果组件未挂载，直接清空消息列表
+      _messages.clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 获取屏幕宽度，用于判断是否为桌面端
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isDesktop = screenWidth > 600;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
             // 顶部工具栏
-            Padding(
-              // 增加顶部内边距
-              padding: EdgeInsets.only(top: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 设置按钮
-                  IconButton(
-                    icon: Icon(Icons.settings),
-                    onPressed: () {
-                      _showSettingsDialog();
-                    },
+            if (!isDesktop)
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey.shade200, width: 1),
                   ),
-                  // 新对话按钮
-                  IconButton(
-                    icon: Icon(Icons.new_label_outlined),
-                    onPressed: () {
-                      setState(() {
-                        _messages.clear();
-                      });
-                    },
-                    // 提示
-                    tooltip: tr(LocaleKeys.chatPageNewChat),
-                  )
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 左侧设置按钮
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border:
+                            Border.all(color: Colors.grey.shade300, width: 1),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.settings, size: 16),
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
+                        onPressed: () {
+                          _showSettingsDialog();
+                        },
+                      ),
+                    ),
+                    // 中间标题
+                    Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.smart_toy_outlined,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          _currentModel.isNotEmpty ? _currentModel : 'AI Chat',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // 右侧新对话按钮
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border:
+                            Border.all(color: Colors.grey.shade300, width: 1),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.add, size: 16),
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
+                        onPressed: () {
+                          clearChat();
+                        },
+                        tooltip: tr(LocaleKeys.chatPageNewChat),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // 消息内容区
+            // 桌面端顶部工具栏
+            if (isDesktop)
+              Padding(
+                padding: EdgeInsets.only(top: 16, left: 16, right: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.smart_toy_outlined,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          _currentModel.isNotEmpty ? _currentModel : 'AI Model',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.settings, size: 18),
+                          onPressed: () {
+                            _showSettingsDialog();
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            // 消息内容区 - 桌面端时增加内边距
             Expanded(
-              child: MessageList(
-                messages: _messages,
-                scrollController: _scrollController,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 16 : 0),
+                child: MessageList(
+                  messages: _messages,
+                  scrollController: _scrollController,
+                ),
               ),
             ),
-            // 输入框
-            InputWidget(
-              messageController: _messageController,
-              isWaitingResponse: _isWaitingResponse,
-              onSendMessage: _sendMessage,
+            // 输入框 - 桌面端时增加内边距和样式
+            Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: isDesktop ? 16 : 0, vertical: isDesktop ? 16 : 0),
+              child: InputWidget(
+                messageController: _messageController,
+                isWaitingResponse: _isWaitingResponse,
+                onSendMessage: _sendMessage,
+              ),
             ),
           ],
         ),

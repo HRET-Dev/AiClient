@@ -15,6 +15,11 @@
   "clipboard_empty": "Clipboard is empty",
   "this_feature_is_under_development": "This feature is under development",
   "please_select": "Please select",
+  "sidebar": {
+    "show": "Show Sidebar",
+    "hide": "Hide Sidebar",
+    "app_name": "AI Client"
+  },
   "chat_page": {
     "new_chat": "New Chat",
     "thinking": "Thinking...",

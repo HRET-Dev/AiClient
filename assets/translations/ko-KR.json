@@ -15,6 +15,11 @@
   "clipboard_empty": "클립보드가 비어 있습니다",
   "this_feature_is_under_development": "이 기능은 개발 중입니다",
   "please_select": "선택해 주세요",
+  "sidebar": {
+    "show": "사이드바 표시",
+    "hide": "사이드바 숨기기",
+    "app_name": "AI 클라이언트"
+  },
   "chat_page": {
     "new_chat": "새 채팅",
     "thinking": "생각 중...",
