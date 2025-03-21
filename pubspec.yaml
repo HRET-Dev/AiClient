@@ -1,7 +1,7 @@
 name: ai_client
 description: "跨平台的AI客户端"
 
-version: 1.0.0+1
+version: 0.0.1
 publish_to: none
 
 environment:
