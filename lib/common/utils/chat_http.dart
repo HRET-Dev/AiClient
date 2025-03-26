@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/default_api_configs.dart';
-import 'package:ai_client/models/chat_messages.dart';
+import 'package:ai_client/models/chat_message.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 
@@ -53,7 +53,7 @@ class ChatHttp {
     required AiApiData api,
     required String model,
     required String message,
-    List<ChatMessage>? historys,
+    List<ChatMessageInfo>? historys,
   }) async {
     // 检查 baseUrl 是否存在
     if (api.baseUrl.isEmpty) {
@@ -118,7 +118,7 @@ class ChatHttp {
     required AiApiData api,
     required String model,
     required String message,
-    List<ChatMessage>? historys,
+    List<ChatMessageInfo>? historys,
     bool useStream = true,
   }) async {
     // 根据 useStream 参数决定使用哪种请求方式
@@ -143,7 +143,7 @@ class ChatHttp {
     required AiApiData api,
     required String model,
     required String message,
-    List<ChatMessage>? historys,
+    List<ChatMessageInfo>? historys,
   }) async {
     // 检查 baseUrl 是否存在
     if (api.baseUrl.isEmpty) {
@@ -241,58 +241,9 @@ class ChatHttp {
 
       return streamController.stream;
     } catch (e) {
-      print('流式请求失败，尝试回退到非流式请求: $e');
+      print('流式请求失败: $e');
 
-      // 判断是否是流式请求不支持的错误
-      // 不同API可能有不同的错误格式，这里尝试捕获常见的错误模式
-      bool isStreamingNotSupported = false;
-
-      if (e is DioException) {
-        // 检查错误响应中是否包含特定错误信息
-        final response = e.response;
-        if (response != null) {
-          final errorData = response.data;
-          if (errorData is Map<String, dynamic>) {
-            // 检查常见的错误消息模式
-            final errorMessage = errorData['error']?['message'] ?? '';
-            isStreamingNotSupported = errorMessage.contains('streaming') ||
-                errorMessage.contains('stream') ||
-                errorMessage.toLowerCase().contains('not supported');
-          } else if (errorData is String) {
-            isStreamingNotSupported = errorData.contains('streaming') ||
-                errorData.contains('stream') ||
-                errorData.toLowerCase().contains('not supported');
-          }
-        }
-
-        // 检查状态码，某些API可能返回特定状态码表示不支持流式
-        isStreamingNotSupported = isStreamingNotSupported ||
-            e.response?.statusCode == 400 ||
-            e.response?.statusCode == 501;
-      }
-
-      // 如果是流式不支持或其他错误，回退到非流式请求
-      try {
-        // 移除stream参数
-        requestBody.remove('stream');
-
-        // 发送非流式请求
-        final response = await dio.post(
-          baseUrl,
-          data: requestBody,
-        );
-
-        // 从非流式响应中提取内容
-        final content =
-            response.data['choices'][0]['message']['content'] as String;
-
-        // 返回单一事件的流
-        return Stream.value(content);
-      } catch (fallbackError) {
-        print('非流式请求失败: $fallbackError');
-        // 如果非流式请求也失败，返回错误流
-        return Stream.error('请求失败: $fallbackError');
-      }
+      return Stream.error('请求失败: $e');
     }
   }
 }

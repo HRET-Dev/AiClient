@@ -19,6 +19,8 @@ PODS:
     - sqlite3/common
   - sqlite3/fts5 (3.49.1):
     - sqlite3/common
+  - sqlite3/math (3.49.1):
+    - sqlite3/common
   - sqlite3/perf-threadsafe (3.49.1):
     - sqlite3/common
   - sqlite3/rtree (3.49.1):
@@ -29,6 +31,7 @@ PODS:
     - sqlite3 (~> 3.49.1)
     - sqlite3/dbstatvtab
     - sqlite3/fts5
+    - sqlite3/math
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
   - window_manager (0.2.0):
@@ -74,7 +77,7 @@ SPEC CHECKSUMS:
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
-  sqlite3_flutter_libs: f8fc13346870e73fe35ebf6dbb997fbcd156b241
+  sqlite3_flutter_libs: f6acaa2172e6bb3e2e70c771661905080e8ebcf2
   window_manager: 1d01fa7ac65a6e6f83b965471b1a7fdd3f06166c
 
 PODFILE CHECKSUM: 7eb978b976557c8c1cd717d8185ec483fd090a82

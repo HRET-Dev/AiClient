@@ -1,9 +1,9 @@
-import 'package:ai_client/models/chat_messages.dart';
+import 'package:ai_client/models/chat_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 class MessageList extends StatelessWidget {
-  final List<ChatMessage> messages;
+  final List<ChatMessageInfo> messages;
   final ScrollController scrollController;
 
   const MessageList({
@@ -13,7 +13,7 @@ class MessageList extends StatelessWidget {
   });
 
   /// 构建消息项
-  Widget _buildMessageItem(BuildContext context, ChatMessage message) {
+  Widget _buildMessageItem(BuildContext context, ChatMessageInfo message) {
     // 获取屏幕宽度，用于判断是否为桌面端
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
@@ -33,7 +33,7 @@ class MessageList extends StatelessWidget {
   }
 
   /// 构建用户消息
-  Widget _buildUserMessage(BuildContext context, ChatMessage message) {
+  Widget _buildUserMessage(BuildContext context, ChatMessageInfo message) {
     // 获取屏幕宽度
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
@@ -95,7 +95,7 @@ class MessageList extends StatelessWidget {
   }
 
   /// 构建助手消息
-  Widget _buildAssistantMessage(BuildContext context, ChatMessage message) {
+  Widget _buildAssistantMessage(BuildContext context, ChatMessageInfo message) {
     // 获取屏幕宽度
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;

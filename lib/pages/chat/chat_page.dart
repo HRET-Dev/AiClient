@@ -1,7 +1,7 @@
 import 'package:ai_client/common/utils/chat_http.dart';
 import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/locale_keys.dart';
-import 'package:ai_client/models/chat_messages.dart';
+import 'package:ai_client/models/chat_message.dart';
 import 'package:ai_client/pages/chat/input.dart';
 import 'package:ai_client/pages/chat/message_list.dart';
 import 'package:ai_client/pages/settings/apis/api_info.dart';
@@ -22,7 +22,7 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   // 消息列表
-  List<ChatMessage> _messages = [];
+  List<ChatMessageInfo> _messages = [];
 
   // 消息输入框控制器
   TextEditingController _messageController = TextEditingController();
@@ -68,6 +68,29 @@ class ChatPageState extends State<ChatPage> {
     _loadApiConfig();
   }
 
+  /// 显示通用提示弹窗
+  void _showAlertDialog(String title, String content) {
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text(tr(LocaleKeys.confirm)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // 从 SQLite 数据库中加载 API 配置信息，优先取第一条记录
   Future<void> _loadApiConfig() async {
     final apis = await _aiApiService.initDefaultAiApiConfig();
@@ -77,33 +100,8 @@ class ChatPageState extends State<ChatPage> {
         _apiConfig = apis;
       });
     } else {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('提示'),
-              content: Text('未找到 API 配置信息'),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('确定'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
+      _showAlertDialog('提示', '未找到 API 配置信息');
     }
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 
   /// 聊天页信息设置弹窗
@@ -116,23 +114,7 @@ class ChatPageState extends State<ChatPage> {
 
     // 如果API配置为空，提示用户
     if (_apiConfig.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('提示'),
-            content: Text('无可用 API 配置信息'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('确定'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showAlertDialog('提示', '无可用 API 配置信息');
       return;
     }
 
@@ -369,26 +351,7 @@ class ChatPageState extends State<ChatPage> {
 
     // 判断是否有可用 API 配置信息
     if (_apiConfig.isEmpty) {
-      // 如果组件已卸载，则不继续执行
-      if (!mounted) return;
-
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('提示'),
-            content: Text('无可用 API 配置信息'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('确定'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showAlertDialog('提示', '无可用 API 配置信息');
       return;
     }
 
@@ -404,11 +367,11 @@ class ChatPageState extends State<ChatPage> {
     }
 
     // 存储一个新的消息列表 防止历史消息被覆盖
-    List<ChatMessage> newMessages = List.from(_messages);
+    List<ChatMessageInfo> newMessages = List.from(_messages);
 
     final userMessage = _messageController.text;
     setState(() {
-      _messages.add(ChatMessage(
+      _messages.add(ChatMessageInfo(
           content: userMessage,
           isUser: true,
           modelName: _currentModel,
@@ -420,7 +383,7 @@ class ChatPageState extends State<ChatPage> {
     _scrollToBottom();
 
     // 默认加载中
-    final aiMessage = ChatMessage(
+    final aiMessage = ChatMessageInfo(
         content: tr(LocaleKeys.chatPageThinking),
         isUser: false,
         modelName: _currentModel,
@@ -503,7 +466,7 @@ class ChatPageState extends State<ChatPage> {
         // 找到加载消息的索引并替换它
         final loadingIndex = _messages.indexOf(aiMessage);
         if (loadingIndex != -1) {
-          _messages[loadingIndex] = ChatMessage(
+          _messages[loadingIndex] = ChatMessageInfo(
               content: errorMessage,
               isUser: false,
               modelName: _currentModel,
