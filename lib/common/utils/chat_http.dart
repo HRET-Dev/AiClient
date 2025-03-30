@@ -53,7 +53,7 @@ class ChatHttp {
     required AiApiData api,
     required String model,
     required String message,
-    List<ChatMessageInfo>? historys,
+    List<ChatMessage>? historys,
   }) async {
     // 检查 baseUrl 是否存在
     if (api.baseUrl.isEmpty) {
@@ -77,7 +77,7 @@ class ChatHttp {
       for (var history in historys) {
         // 构建角色和内容的字典
         final roleContent = {
-          'role': history.isUser ? 'user' : 'assistant',
+          'role': history.role.name,
           'content': history.content,
         };
         // 将角色和内容添加到请求体的 messages 列表中
@@ -86,7 +86,7 @@ class ChatHttp {
     }
 
     // 设置新消息
-    messages.add({'role': 'user', 'content': message});
+    messages.add({'role': MessageRole.user.name, 'content': message});
 
     // 构建请求体
     final requestBody = {
@@ -118,7 +118,7 @@ class ChatHttp {
     required AiApiData api,
     required String model,
     required String message,
-    List<ChatMessageInfo>? historys,
+    List<ChatMessage>? historys,
     bool useStream = true,
   }) async {
     // 根据 useStream 参数决定使用哪种请求方式
@@ -143,7 +143,7 @@ class ChatHttp {
     required AiApiData api,
     required String model,
     required String message,
-    List<ChatMessageInfo>? historys,
+    List<ChatMessage>? historys,
   }) async {
     // 检查 baseUrl 是否存在
     if (api.baseUrl.isEmpty) {
@@ -165,7 +165,7 @@ class ChatHttp {
     if (historys != null && historys.isNotEmpty) {
       for (var history in historys) {
         final roleContent = {
-          'role': history.isUser ? 'user' : 'assistant',
+          'role': history.role,
           'content': history.content,
         };
         messages.add(roleContent);

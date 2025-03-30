@@ -1,5 +1,6 @@
 import 'package:ai_client/generated/locale_keys.dart';
 import 'package:ai_client/pages/chat/chat_page.dart';
+import 'package:ai_client/pages/history/history_list.dart';
 import 'package:ai_client/pages/settings/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -143,8 +144,6 @@ class HomePageState extends State<HomePage> {
                 setState(() {
                   // 切换到聊天页面
                   selectedIndex = 0;
-                  // 不要直接创建新的 ChatPageState 实例
-                  // ChatPageState().clearChat(); <- 这会导致错误
                 });
                 // 使用 GlobalKey 访问 ChatPage 的状态
                 chatPageKey.currentState?.clearChat();
@@ -241,10 +240,8 @@ class HomePageState extends State<HomePage> {
     return IndexedStack(
       index: selectedIndex,
       children: [
-        ChatPage(key: chatPageKey), // 使用 GlobalKey 关联 ChatPage
-        Center(
-          child: Text(LocaleKeys.thisFeatureIsUnderDevelopment).tr(),
-        ), // 历史
+        ChatPage(key: chatPageKey), // 聊天
+        HistoryList(), // 历史
         SettingsPage(), // 设置
       ],
     );

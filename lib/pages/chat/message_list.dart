@@ -1,9 +1,10 @@
+import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/models/chat_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 class MessageList extends StatelessWidget {
-  final List<ChatMessageInfo> messages;
+  final List<ChatMessage> messages;
   final ScrollController scrollController;
 
   const MessageList({
@@ -13,7 +14,7 @@ class MessageList extends StatelessWidget {
   });
 
   /// 构建消息项
-  Widget _buildMessageItem(BuildContext context, ChatMessageInfo message) {
+  Widget _buildMessageItem(BuildContext context, ChatMessage message) {
     // 获取屏幕宽度，用于判断是否为桌面端
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
@@ -26,14 +27,14 @@ class MessageList extends StatelessWidget {
           BoxConstraints(maxWidth: isDesktop ? 800 : screenWidth * 0.9),
       // 消息间距
       margin: EdgeInsets.symmetric(horizontal: 8),
-      child: message.isUser
+      child: message.role == MessageRole.user
           ? _buildUserMessage(context, message)
           : _buildAssistantMessage(context, message),
     );
   }
 
   /// 构建用户消息
-  Widget _buildUserMessage(BuildContext context, ChatMessageInfo message) {
+  Widget _buildUserMessage(BuildContext context, ChatMessage message) {
     // 获取屏幕宽度
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
@@ -95,7 +96,7 @@ class MessageList extends StatelessWidget {
   }
 
   /// 构建助手消息
-  Widget _buildAssistantMessage(BuildContext context, ChatMessageInfo message) {
+  Widget _buildAssistantMessage(BuildContext context, ChatMessage message) {
     // 获取屏幕宽度
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
@@ -129,7 +130,7 @@ class MessageList extends StatelessWidget {
               children: [
                 // 模型名称
                 Text(
-                  message.modelName,
+                  message.model.toString(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,

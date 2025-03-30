@@ -8,7 +8,7 @@
   "delete": "削除",
   "confirm": "確認",
   "confirm_delete": "削除の確認",
-  "confirm_delete_message": "このAPI設定を削除してもよろしいですか？この操作は元に戻せません。",
+  "confirm_delete_message": "削除してもよろしいですか？この操作は元に戻せません。",
   "share": "共有",
   "shared": "共有済み",
   "import": "インポート",

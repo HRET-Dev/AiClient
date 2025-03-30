@@ -14,9 +14,7 @@ part 'app_database.g.dart';
 const _dbName = 'ai_client.db';
 
 // 使用DriftDatabase注解定义数据库类
-@DriftDatabase(
-  tables: [AiApi, ChatSessions, ChatMessages, FileAttachments]
-)
+@DriftDatabase(tables: [AiApi, ChatSessions, ChatMessages, FileAttachments])
 class AppDatabase extends _$AppDatabase {
   // 构造函数，使用平台特定的连接方法
   AppDatabase() : super(openConnection(_dbName));

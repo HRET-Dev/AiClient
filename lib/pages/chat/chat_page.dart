@@ -6,15 +6,22 @@ import 'package:ai_client/pages/chat/input.dart';
 import 'package:ai_client/pages/chat/message_list.dart';
 import 'package:ai_client/pages/settings/apis/api_info.dart';
 import 'package:ai_client/repositories/ai_api_repository.dart';
+import 'package:ai_client/repositories/chat_message_repository.dart';
+import 'package:ai_client/repositories/chat_session_repository.dart';
 import 'package:ai_client/services/ai_api_service.dart';
+import 'package:ai_client/services/chat_message_service.dart';
+import 'package:ai_client/services/chat_session_service.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// 聊天页面，同时集成了 HTTP 请求和 SQLite 加载 API 配置信息
 class ChatPage extends StatefulWidget {
-  // 添加构造函数，接收 key 参数s
-  const ChatPage({super.key});
+  // 会话ID
+  final int? sessionId;
+
+  // 添加构造函数，接收 key 会话ID 参数
+  const ChatPage({super.key, this.sessionId});
 
   @override
   ChatPageState createState() => ChatPageState();
@@ -22,7 +29,7 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   // 消息列表
-  List<ChatMessageInfo> _messages = [];
+  List<ChatMessage> _messages = [];
 
   // 消息输入框控制器
   TextEditingController _messageController = TextEditingController();
@@ -38,6 +45,15 @@ class ChatPageState extends State<ChatPage> {
 
   /// AiApi 服务类
   late final AiApiService _aiApiService;
+
+  /// 聊天会话 服务类
+  late final ChatSessionService _chatSessionService;
+
+  /// 聊天信息 服务类
+  late final ChatMessageService _chatMessageService;
+
+  // 聊天会话 ID
+  int _chatSessionId = 0;
 
   // 加载到的 API 配置列表
   late List<AiApiData> _apiConfig;
@@ -64,14 +80,28 @@ class ChatPageState extends State<ChatPage> {
     _appDatabase = AppDatabase();
     // 初始化 AiApi 服务类
     _aiApiService = AiApiService(AiApiRepository(_appDatabase));
+    // 初始化聊天会话 服务类
+    _chatSessionService = ChatSessionService(
+        ChatSessionRepository(_appDatabase),
+        ChatMessageRepository(_appDatabase));
+    // 初始化聊天信息 服务类
+    _chatMessageService = ChatMessageService(
+        ChatMessageRepository(_appDatabase),
+        ChatSessionRepository(_appDatabase));
     // 初始化 API 配置
     _loadApiConfig();
+
+    // 判断是否传递了会话ID
+    if (widget.sessionId != null && widget.sessionId! > 0) {
+      // 根据会话ID查询聊天信息
+      _loadChatMessages(widget.sessionId!);
+    }
   }
 
   /// 显示通用提示弹窗
   void _showAlertDialog(String title, String content) {
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -102,6 +132,36 @@ class ChatPageState extends State<ChatPage> {
     } else {
       _showAlertDialog('提示', '未找到 API 配置信息');
     }
+  }
+
+  /// 根据会话ID 加载对应的聊天记录列表
+  void _loadChatMessages(int sessionId) async {
+    // 根据会话ID查询聊天信息
+    final messages =
+        await _chatMessageService.getMessagesBySessionId(sessionId);
+    // 判断是否有数据
+    if (messages.isNotEmpty) {
+      setState(() {
+        // 设置聊天会话ID
+        _chatSessionId = sessionId;
+        // 设置消息列表
+        _messages = messages;
+      });
+    }
+  }
+
+  /// 加载指定会话的聊天记录列表
+  void loadSession(int sessionId) {
+    // 清空当前会话
+    clearChat();
+
+    // 设置新的会话ID
+    setState(() {
+      _chatSessionId = sessionId;
+    });
+
+    // 加载历史聊天记录
+    _loadChatMessages(sessionId);
   }
 
   /// 聊天页信息设置弹窗
@@ -367,15 +427,19 @@ class ChatPageState extends State<ChatPage> {
     }
 
     // 存储一个新的消息列表 防止历史消息被覆盖
-    List<ChatMessageInfo> newMessages = List.from(_messages);
+    List<ChatMessage> newMessages = List.from(_messages);
 
     final userMessage = _messageController.text;
     setState(() {
-      _messages.add(ChatMessageInfo(
+      _messages.add(ChatMessage(
+          id: 0,
+          sessionId: _chatSessionId,
           content: userMessage,
-          isUser: true,
-          modelName: _currentModel,
-          createdTime: DateTime.now()));
+          model: _currentModel,
+          type: MessageType.system,
+          role: MessageRole.user,
+          createdTime: DateTime.now(),
+          status: MessageStatus.sent));
       _messageController.clear();
       _isWaitingResponse = true; // 设置等待状态
     });
@@ -383,14 +447,21 @@ class ChatPageState extends State<ChatPage> {
     _scrollToBottom();
 
     // 默认加载中
-    final aiMessage = ChatMessageInfo(
+    var aiMessage = ChatMessage(
+        id: 0,
+        sessionId: _chatSessionId,
         content: tr(LocaleKeys.chatPageThinking),
-        isUser: false,
-        modelName: _currentModel,
-        createdTime: DateTime.now());
+        model: _currentModel,
+        type: MessageType.system,
+        role: MessageRole.assistant,
+        createdTime: DateTime.now(),
+        status: MessageStatus.send);
     setState(() {
       _messages.add(aiMessage);
     });
+
+    // 记录AI消息在消息列表中的索引
+    final aiMessageIndex = _messages.length - 1;
 
     try {
       if (_useStream) {
@@ -411,7 +482,14 @@ class ChatPageState extends State<ChatPage> {
 
           // 更新消息内容
           setState(() {
-            aiMessage.content = accumulatedContent;
+            // 更新aiMessage变量
+            aiMessage = aiMessage.copyWith(
+                content: accumulatedContent, status: MessageStatus.sent);
+
+            // 直接使用索引更新_messages列表
+            if (aiMessageIndex < _messages.length) {
+              _messages[aiMessageIndex] = aiMessage;
+            }
           });
           // 滚动到最底部
           _scrollToBottom();
@@ -425,7 +503,14 @@ class ChatPageState extends State<ChatPage> {
         }, onError: (error) {
           // 错误处理
           setState(() {
-            aiMessage.content = "发生错误: $error";
+            aiMessage = aiMessage.copyWith(
+                content: "发生错误: $error", status: MessageStatus.error);
+
+            // 直接使用索引更新_messages列表
+            if (aiMessageIndex < _messages.length) {
+              _messages[aiMessageIndex] = aiMessage;
+            }
+
             _isWaitingResponse = false; // 清除等待状态
           });
           // 滚动到最底部
@@ -445,7 +530,14 @@ class ChatPageState extends State<ChatPage> {
 
         // 更新消息内容
         setState(() {
-          aiMessage.content = content;
+          aiMessage =
+              aiMessage.copyWith(content: content, status: MessageStatus.sent);
+
+          // 直接使用索引更新_messages列表
+          if (aiMessageIndex < _messages.length) {
+            _messages[aiMessageIndex] = aiMessage;
+          }
+
           _isWaitingResponse = false; // 清除等待状态
         });
         // 滚动到最底部
@@ -463,17 +555,83 @@ class ChatPageState extends State<ChatPage> {
         errorMessage = '请求出错: $e';
       }
       setState(() {
-        // 找到加载消息的索引并替换它
-        final loadingIndex = _messages.indexOf(aiMessage);
-        if (loadingIndex != -1) {
-          _messages[loadingIndex] = ChatMessageInfo(
+        // 直接使用之前保存的索引更新消息
+        if (aiMessageIndex < _messages.length) {
+          _messages[aiMessageIndex] = ChatMessage(
+              id: 0,
+              sessionId: _chatSessionId,
               content: errorMessage,
-              isUser: false,
-              modelName: _currentModel,
-              createdTime: DateTime.now());
+              model: _currentModel,
+              type: MessageType.system,
+              role: MessageRole.assistant,
+              createdTime: DateTime.now(),
+              status: MessageStatus.error);
         }
         _isWaitingResponse = false; // 清除等待状态
       });
+    }
+
+    // 保存聊天记录
+    saveChat();
+  }
+
+  /// 保存聊天记录
+  void saveChat() async {
+    // 如果没有消息，则不保存
+    if (_messages.isEmpty) return;
+
+    // 确保组件已挂载
+    if (mounted) {
+      try {
+        // 判断是否是已有会话的聊天记录
+        if (_chatSessionId != 0) {
+          // 更新会话信息
+          await _chatSessionService.updateSession(_chatSessionId,
+              apiConfigId: _currentApi?.id, model: _currentModel);
+        } else {
+          // 创建会话信息 会话标题取第一条消息的前15个字（如果消息长度不足15个字则取全部）
+          final title = _messages.isNotEmpty
+              ? _messages[0].content.toString().length > 15
+                  ? _messages[0].content.toString().substring(0, 15)
+                  : _messages[0].content.toString()
+              : "新会话";
+
+          // 保存会话信息并获取会话ID
+          int sessionId = await _chatSessionService.createSession(title,
+              apiConfigId: _currentApi!.id, model: _currentModel);
+
+          setState(() {
+            // 更新会话ID
+            _chatSessionId = sessionId;
+          });
+        }
+
+        // 创建聊天信息
+        for (int i = 0; i < _messages.length; i++) {
+          // 获取消息信息
+          var message = _messages[i];
+
+          // 检查消息是否已经保存过
+          if (message.id != 0) continue;
+
+          // 创建文本类型的消息
+          int messageId = await _chatMessageService.createTextMessage(
+              sessionId: _chatSessionId,
+              content: message.content.toString(),
+              apiConfigId: _currentApi!.id,
+              model: _currentModel,
+              role: message.role,
+              status: message.status);
+
+          // 更新消息的ID
+          setState(() {
+            // 直接更新列表中的消息对象
+            _messages[i] = message.copyWith(id: messageId);
+          });
+        }
+      } catch (e) {
+        print('保存聊天记录失败: $e');
+      }
     }
   }
 
@@ -482,11 +640,16 @@ class ChatPageState extends State<ChatPage> {
     // 确保只有在组件已挂载时才调用 setState
     if (mounted) {
       setState(() {
+        // 清空消息列表
         _messages.clear();
+        // 清空会话ID
+        _chatSessionId = 0;
       });
     } else {
       // 如果组件未挂载，直接清空消息列表
       _messages.clear();
+      // 清空会话ID
+      _chatSessionId = 0;
     }
   }
 

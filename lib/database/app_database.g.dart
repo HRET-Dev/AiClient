@@ -502,6 +502,17 @@ class $ChatSessionsTable extends ChatSessions
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
       'title', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _apiConfigIdMeta =
+      const VerificationMeta('apiConfigId');
+  @override
+  late final GeneratedColumn<int> apiConfigId = GeneratedColumn<int>(
+      'api_config_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _modelMeta = const VerificationMeta('model');
+  @override
+  late final GeneratedColumn<String> model = GeneratedColumn<String>(
+      'model', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createdTimeMeta =
       const VerificationMeta('createdTime');
   @override
@@ -518,17 +529,6 @@ class $ChatSessionsTable extends ChatSessions
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: Constant(DateTime.now()));
-  static const VerificationMeta _apiConfigIdMeta =
-      const VerificationMeta('apiConfigId');
-  @override
-  late final GeneratedColumn<int> apiConfigId = GeneratedColumn<int>(
-      'api_config_id', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _modelMeta = const VerificationMeta('model');
-  @override
-  late final GeneratedColumn<String> model = GeneratedColumn<String>(
-      'model', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _isFavoriteMeta =
       const VerificationMeta('isFavorite');
   @override
@@ -541,7 +541,7 @@ class $ChatSessionsTable extends ChatSessions
       defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, title, createdTime, updatedTime, apiConfigId, model, isFavorite];
+      [id, title, apiConfigId, model, createdTime, updatedTime, isFavorite];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -561,6 +561,16 @@ class $ChatSessionsTable extends ChatSessions
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
+    if (data.containsKey('api_config_id')) {
+      context.handle(
+          _apiConfigIdMeta,
+          apiConfigId.isAcceptableOrUnknown(
+              data['api_config_id']!, _apiConfigIdMeta));
+    }
+    if (data.containsKey('model')) {
+      context.handle(
+          _modelMeta, model.isAcceptableOrUnknown(data['model']!, _modelMeta));
+    }
     if (data.containsKey('created_time')) {
       context.handle(
           _createdTimeMeta,
@@ -572,16 +582,6 @@ class $ChatSessionsTable extends ChatSessions
           _updatedTimeMeta,
           updatedTime.isAcceptableOrUnknown(
               data['updated_time']!, _updatedTimeMeta));
-    }
-    if (data.containsKey('api_config_id')) {
-      context.handle(
-          _apiConfigIdMeta,
-          apiConfigId.isAcceptableOrUnknown(
-              data['api_config_id']!, _apiConfigIdMeta));
-    }
-    if (data.containsKey('model')) {
-      context.handle(
-          _modelMeta, model.isAcceptableOrUnknown(data['model']!, _modelMeta));
     }
     if (data.containsKey('is_favorite')) {
       context.handle(
@@ -602,14 +602,14 @@ class $ChatSessionsTable extends ChatSessions
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      createdTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_time'])!,
-      updatedTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_time'])!,
       apiConfigId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}api_config_id']),
       model: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}model']),
+      createdTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_time'])!,
+      updatedTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_time'])!,
       isFavorite: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
     );
@@ -624,32 +624,32 @@ class $ChatSessionsTable extends ChatSessions
 class ChatSession extends DataClass implements Insertable<ChatSession> {
   final int id;
   final String title;
-  final DateTime createdTime;
-  final DateTime updatedTime;
   final int? apiConfigId;
   final String? model;
+  final DateTime createdTime;
+  final DateTime updatedTime;
   final bool isFavorite;
   const ChatSession(
       {required this.id,
       required this.title,
-      required this.createdTime,
-      required this.updatedTime,
       this.apiConfigId,
       this.model,
+      required this.createdTime,
+      required this.updatedTime,
       required this.isFavorite});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
-    map['created_time'] = Variable<DateTime>(createdTime);
-    map['updated_time'] = Variable<DateTime>(updatedTime);
     if (!nullToAbsent || apiConfigId != null) {
       map['api_config_id'] = Variable<int>(apiConfigId);
     }
     if (!nullToAbsent || model != null) {
       map['model'] = Variable<String>(model);
     }
+    map['created_time'] = Variable<DateTime>(createdTime);
+    map['updated_time'] = Variable<DateTime>(updatedTime);
     map['is_favorite'] = Variable<bool>(isFavorite);
     return map;
   }
@@ -658,13 +658,13 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
     return ChatSessionsCompanion(
       id: Value(id),
       title: Value(title),
-      createdTime: Value(createdTime),
-      updatedTime: Value(updatedTime),
       apiConfigId: apiConfigId == null && nullToAbsent
           ? const Value.absent()
           : Value(apiConfigId),
       model:
           model == null && nullToAbsent ? const Value.absent() : Value(model),
+      createdTime: Value(createdTime),
+      updatedTime: Value(updatedTime),
       isFavorite: Value(isFavorite),
     );
   }
@@ -675,10 +675,10 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
     return ChatSession(
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
-      createdTime: serializer.fromJson<DateTime>(json['createdTime']),
-      updatedTime: serializer.fromJson<DateTime>(json['updatedTime']),
       apiConfigId: serializer.fromJson<int?>(json['apiConfigId']),
       model: serializer.fromJson<String?>(json['model']),
+      createdTime: serializer.fromJson<DateTime>(json['createdTime']),
+      updatedTime: serializer.fromJson<DateTime>(json['updatedTime']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
     );
   }
@@ -688,10 +688,10 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
-      'createdTime': serializer.toJson<DateTime>(createdTime),
-      'updatedTime': serializer.toJson<DateTime>(updatedTime),
       'apiConfigId': serializer.toJson<int?>(apiConfigId),
       'model': serializer.toJson<String?>(model),
+      'createdTime': serializer.toJson<DateTime>(createdTime),
+      'updatedTime': serializer.toJson<DateTime>(updatedTime),
       'isFavorite': serializer.toJson<bool>(isFavorite),
     };
   }
@@ -699,31 +699,31 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
   ChatSession copyWith(
           {int? id,
           String? title,
-          DateTime? createdTime,
-          DateTime? updatedTime,
           Value<int?> apiConfigId = const Value.absent(),
           Value<String?> model = const Value.absent(),
+          DateTime? createdTime,
+          DateTime? updatedTime,
           bool? isFavorite}) =>
       ChatSession(
         id: id ?? this.id,
         title: title ?? this.title,
-        createdTime: createdTime ?? this.createdTime,
-        updatedTime: updatedTime ?? this.updatedTime,
         apiConfigId: apiConfigId.present ? apiConfigId.value : this.apiConfigId,
         model: model.present ? model.value : this.model,
+        createdTime: createdTime ?? this.createdTime,
+        updatedTime: updatedTime ?? this.updatedTime,
         isFavorite: isFavorite ?? this.isFavorite,
       );
   ChatSession copyWithCompanion(ChatSessionsCompanion data) {
     return ChatSession(
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
+      apiConfigId:
+          data.apiConfigId.present ? data.apiConfigId.value : this.apiConfigId,
+      model: data.model.present ? data.model.value : this.model,
       createdTime:
           data.createdTime.present ? data.createdTime.value : this.createdTime,
       updatedTime:
           data.updatedTime.present ? data.updatedTime.value : this.updatedTime,
-      apiConfigId:
-          data.apiConfigId.present ? data.apiConfigId.value : this.apiConfigId,
-      model: data.model.present ? data.model.value : this.model,
       isFavorite:
           data.isFavorite.present ? data.isFavorite.value : this.isFavorite,
     );
@@ -734,10 +734,10 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
     return (StringBuffer('ChatSession(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('createdTime: $createdTime, ')
-          ..write('updatedTime: $updatedTime, ')
           ..write('apiConfigId: $apiConfigId, ')
           ..write('model: $model, ')
+          ..write('createdTime: $createdTime, ')
+          ..write('updatedTime: $updatedTime, ')
           ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
@@ -745,62 +745,62 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
 
   @override
   int get hashCode => Object.hash(
-      id, title, createdTime, updatedTime, apiConfigId, model, isFavorite);
+      id, title, apiConfigId, model, createdTime, updatedTime, isFavorite);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ChatSession &&
           other.id == this.id &&
           other.title == this.title &&
-          other.createdTime == this.createdTime &&
-          other.updatedTime == this.updatedTime &&
           other.apiConfigId == this.apiConfigId &&
           other.model == this.model &&
+          other.createdTime == this.createdTime &&
+          other.updatedTime == this.updatedTime &&
           other.isFavorite == this.isFavorite);
 }
 
 class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
   final Value<int> id;
   final Value<String> title;
-  final Value<DateTime> createdTime;
-  final Value<DateTime> updatedTime;
   final Value<int?> apiConfigId;
   final Value<String?> model;
+  final Value<DateTime> createdTime;
+  final Value<DateTime> updatedTime;
   final Value<bool> isFavorite;
   const ChatSessionsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
-    this.createdTime = const Value.absent(),
-    this.updatedTime = const Value.absent(),
     this.apiConfigId = const Value.absent(),
     this.model = const Value.absent(),
+    this.createdTime = const Value.absent(),
+    this.updatedTime = const Value.absent(),
     this.isFavorite = const Value.absent(),
   });
   ChatSessionsCompanion.insert({
     this.id = const Value.absent(),
     required String title,
-    this.createdTime = const Value.absent(),
-    this.updatedTime = const Value.absent(),
     this.apiConfigId = const Value.absent(),
     this.model = const Value.absent(),
+    this.createdTime = const Value.absent(),
+    this.updatedTime = const Value.absent(),
     this.isFavorite = const Value.absent(),
   }) : title = Value(title);
   static Insertable<ChatSession> custom({
     Expression<int>? id,
     Expression<String>? title,
-    Expression<DateTime>? createdTime,
-    Expression<DateTime>? updatedTime,
     Expression<int>? apiConfigId,
     Expression<String>? model,
+    Expression<DateTime>? createdTime,
+    Expression<DateTime>? updatedTime,
     Expression<bool>? isFavorite,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
-      if (createdTime != null) 'created_time': createdTime,
-      if (updatedTime != null) 'updated_time': updatedTime,
       if (apiConfigId != null) 'api_config_id': apiConfigId,
       if (model != null) 'model': model,
+      if (createdTime != null) 'created_time': createdTime,
+      if (updatedTime != null) 'updated_time': updatedTime,
       if (isFavorite != null) 'is_favorite': isFavorite,
     });
   }
@@ -808,18 +808,18 @@ class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
   ChatSessionsCompanion copyWith(
       {Value<int>? id,
       Value<String>? title,
-      Value<DateTime>? createdTime,
-      Value<DateTime>? updatedTime,
       Value<int?>? apiConfigId,
       Value<String?>? model,
+      Value<DateTime>? createdTime,
+      Value<DateTime>? updatedTime,
       Value<bool>? isFavorite}) {
     return ChatSessionsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
-      createdTime: createdTime ?? this.createdTime,
-      updatedTime: updatedTime ?? this.updatedTime,
       apiConfigId: apiConfigId ?? this.apiConfigId,
       model: model ?? this.model,
+      createdTime: createdTime ?? this.createdTime,
+      updatedTime: updatedTime ?? this.updatedTime,
       isFavorite: isFavorite ?? this.isFavorite,
     );
   }
@@ -833,17 +833,17 @@ class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
-    if (createdTime.present) {
-      map['created_time'] = Variable<DateTime>(createdTime.value);
-    }
-    if (updatedTime.present) {
-      map['updated_time'] = Variable<DateTime>(updatedTime.value);
-    }
     if (apiConfigId.present) {
       map['api_config_id'] = Variable<int>(apiConfigId.value);
     }
     if (model.present) {
       map['model'] = Variable<String>(model.value);
+    }
+    if (createdTime.present) {
+      map['created_time'] = Variable<DateTime>(createdTime.value);
+    }
+    if (updatedTime.present) {
+      map['updated_time'] = Variable<DateTime>(updatedTime.value);
     }
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
@@ -856,10 +856,10 @@ class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
     return (StringBuffer('ChatSessionsCompanion(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('createdTime: $createdTime, ')
-          ..write('updatedTime: $updatedTime, ')
           ..write('apiConfigId: $apiConfigId, ')
           ..write('model: $model, ')
+          ..write('createdTime: $createdTime, ')
+          ..write('updatedTime: $updatedTime, ')
           ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
@@ -890,12 +890,29 @@ class $ChatMessagesTable extends ChatMessages
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES chat_sessions (id)'));
+  static const VerificationMeta _parentIdMeta =
+      const VerificationMeta('parentId');
+  @override
+  late final GeneratedColumn<int> parentId = GeneratedColumn<int>(
+      'parent_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _contentMeta =
       const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
       'content', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _apiConfigIdMeta =
+      const VerificationMeta('apiConfigId');
+  @override
+  late final GeneratedColumn<int> apiConfigId = GeneratedColumn<int>(
+      'api_config_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _modelMeta = const VerificationMeta('model');
+  @override
+  late final GeneratedColumn<String> model = GeneratedColumn<String>(
+      'model', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   late final GeneratedColumnWithTypeConverter<MessageType, String> type =
       GeneratedColumn<String>('type', aliasedName, false,
@@ -920,16 +937,25 @@ class $ChatMessagesTable extends ChatMessages
   late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
       'file_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-      'status', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('sent'));
+  late final GeneratedColumnWithTypeConverter<MessageStatus, String> status =
+      GeneratedColumn<String>('status', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<MessageStatus>($ChatMessagesTable.$converterstatus);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, sessionId, content, type, role, createdTime, filePath, status];
+  List<GeneratedColumn> get $columns => [
+        id,
+        sessionId,
+        parentId,
+        content,
+        apiConfigId,
+        model,
+        type,
+        role,
+        createdTime,
+        filePath,
+        status
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -949,11 +975,25 @@ class $ChatMessagesTable extends ChatMessages
     } else if (isInserting) {
       context.missing(_sessionIdMeta);
     }
+    if (data.containsKey('parent_id')) {
+      context.handle(_parentIdMeta,
+          parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta));
+    }
     if (data.containsKey('content')) {
       context.handle(_contentMeta,
           content.isAcceptableOrUnknown(data['content']!, _contentMeta));
     } else if (isInserting) {
       context.missing(_contentMeta);
+    }
+    if (data.containsKey('api_config_id')) {
+      context.handle(
+          _apiConfigIdMeta,
+          apiConfigId.isAcceptableOrUnknown(
+              data['api_config_id']!, _apiConfigIdMeta));
+    }
+    if (data.containsKey('model')) {
+      context.handle(
+          _modelMeta, model.isAcceptableOrUnknown(data['model']!, _modelMeta));
     }
     if (data.containsKey('created_time')) {
       context.handle(
@@ -964,10 +1004,6 @@ class $ChatMessagesTable extends ChatMessages
     if (data.containsKey('file_path')) {
       context.handle(_filePathMeta,
           filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta));
-    }
-    if (data.containsKey('status')) {
-      context.handle(_statusMeta,
-          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
     }
     return context;
   }
@@ -982,8 +1018,14 @@ class $ChatMessagesTable extends ChatMessages
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       sessionId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}session_id'])!,
+      parentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}parent_id']),
       content: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      apiConfigId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}api_config_id']),
+      model: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model']),
       type: $ChatMessagesTable.$convertertype.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
@@ -994,8 +1036,9 @@ class $ChatMessagesTable extends ChatMessages
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_time'])!,
       filePath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}file_path']),
-      status: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      status: $ChatMessagesTable.$converterstatus.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!),
     );
   }
 
@@ -1008,21 +1051,29 @@ class $ChatMessagesTable extends ChatMessages
       const EnumNameConverter<MessageType>(MessageType.values);
   static JsonTypeConverter2<MessageRole, String, String> $converterrole =
       const EnumNameConverter<MessageRole>(MessageRole.values);
+  static JsonTypeConverter2<MessageStatus, String, String> $converterstatus =
+      const EnumNameConverter<MessageStatus>(MessageStatus.values);
 }
 
 class ChatMessage extends DataClass implements Insertable<ChatMessage> {
   final int id;
   final int sessionId;
+  final int? parentId;
   final String content;
+  final int? apiConfigId;
+  final String? model;
   final MessageType type;
   final MessageRole role;
   final DateTime createdTime;
   final String? filePath;
-  final String status;
+  final MessageStatus status;
   const ChatMessage(
       {required this.id,
       required this.sessionId,
+      this.parentId,
       required this.content,
+      this.apiConfigId,
+      this.model,
       required this.type,
       required this.role,
       required this.createdTime,
@@ -1033,7 +1084,16 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['session_id'] = Variable<int>(sessionId);
+    if (!nullToAbsent || parentId != null) {
+      map['parent_id'] = Variable<int>(parentId);
+    }
     map['content'] = Variable<String>(content);
+    if (!nullToAbsent || apiConfigId != null) {
+      map['api_config_id'] = Variable<int>(apiConfigId);
+    }
+    if (!nullToAbsent || model != null) {
+      map['model'] = Variable<String>(model);
+    }
     {
       map['type'] =
           Variable<String>($ChatMessagesTable.$convertertype.toSql(type));
@@ -1046,7 +1106,10 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     if (!nullToAbsent || filePath != null) {
       map['file_path'] = Variable<String>(filePath);
     }
-    map['status'] = Variable<String>(status);
+    {
+      map['status'] =
+          Variable<String>($ChatMessagesTable.$converterstatus.toSql(status));
+    }
     return map;
   }
 
@@ -1054,7 +1117,15 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     return ChatMessagesCompanion(
       id: Value(id),
       sessionId: Value(sessionId),
+      parentId: parentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentId),
       content: Value(content),
+      apiConfigId: apiConfigId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(apiConfigId),
+      model:
+          model == null && nullToAbsent ? const Value.absent() : Value(model),
       type: Value(type),
       role: Value(role),
       createdTime: Value(createdTime),
@@ -1071,14 +1142,18 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     return ChatMessage(
       id: serializer.fromJson<int>(json['id']),
       sessionId: serializer.fromJson<int>(json['sessionId']),
+      parentId: serializer.fromJson<int?>(json['parentId']),
       content: serializer.fromJson<String>(json['content']),
+      apiConfigId: serializer.fromJson<int?>(json['apiConfigId']),
+      model: serializer.fromJson<String?>(json['model']),
       type: $ChatMessagesTable.$convertertype
           .fromJson(serializer.fromJson<String>(json['type'])),
       role: $ChatMessagesTable.$converterrole
           .fromJson(serializer.fromJson<String>(json['role'])),
       createdTime: serializer.fromJson<DateTime>(json['createdTime']),
       filePath: serializer.fromJson<String?>(json['filePath']),
-      status: serializer.fromJson<String>(json['status']),
+      status: $ChatMessagesTable.$converterstatus
+          .fromJson(serializer.fromJson<String>(json['status'])),
     );
   }
   @override
@@ -1087,30 +1162,40 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'sessionId': serializer.toJson<int>(sessionId),
+      'parentId': serializer.toJson<int?>(parentId),
       'content': serializer.toJson<String>(content),
+      'apiConfigId': serializer.toJson<int?>(apiConfigId),
+      'model': serializer.toJson<String?>(model),
       'type': serializer
           .toJson<String>($ChatMessagesTable.$convertertype.toJson(type)),
       'role': serializer
           .toJson<String>($ChatMessagesTable.$converterrole.toJson(role)),
       'createdTime': serializer.toJson<DateTime>(createdTime),
       'filePath': serializer.toJson<String?>(filePath),
-      'status': serializer.toJson<String>(status),
+      'status': serializer
+          .toJson<String>($ChatMessagesTable.$converterstatus.toJson(status)),
     };
   }
 
   ChatMessage copyWith(
           {int? id,
           int? sessionId,
+          Value<int?> parentId = const Value.absent(),
           String? content,
+          Value<int?> apiConfigId = const Value.absent(),
+          Value<String?> model = const Value.absent(),
           MessageType? type,
           MessageRole? role,
           DateTime? createdTime,
           Value<String?> filePath = const Value.absent(),
-          String? status}) =>
+          MessageStatus? status}) =>
       ChatMessage(
         id: id ?? this.id,
         sessionId: sessionId ?? this.sessionId,
+        parentId: parentId.present ? parentId.value : this.parentId,
         content: content ?? this.content,
+        apiConfigId: apiConfigId.present ? apiConfigId.value : this.apiConfigId,
+        model: model.present ? model.value : this.model,
         type: type ?? this.type,
         role: role ?? this.role,
         createdTime: createdTime ?? this.createdTime,
@@ -1121,7 +1206,11 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     return ChatMessage(
       id: data.id.present ? data.id.value : this.id,
       sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      parentId: data.parentId.present ? data.parentId.value : this.parentId,
       content: data.content.present ? data.content.value : this.content,
+      apiConfigId:
+          data.apiConfigId.present ? data.apiConfigId.value : this.apiConfigId,
+      model: data.model.present ? data.model.value : this.model,
       type: data.type.present ? data.type.value : this.type,
       role: data.role.present ? data.role.value : this.role,
       createdTime:
@@ -1136,7 +1225,10 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     return (StringBuffer('ChatMessage(')
           ..write('id: $id, ')
           ..write('sessionId: $sessionId, ')
+          ..write('parentId: $parentId, ')
           ..write('content: $content, ')
+          ..write('apiConfigId: $apiConfigId, ')
+          ..write('model: $model, ')
           ..write('type: $type, ')
           ..write('role: $role, ')
           ..write('createdTime: $createdTime, ')
@@ -1147,15 +1239,18 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, sessionId, content, type, role, createdTime, filePath, status);
+  int get hashCode => Object.hash(id, sessionId, parentId, content, apiConfigId,
+      model, type, role, createdTime, filePath, status);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ChatMessage &&
           other.id == this.id &&
           other.sessionId == this.sessionId &&
+          other.parentId == this.parentId &&
           other.content == this.content &&
+          other.apiConfigId == this.apiConfigId &&
+          other.model == this.model &&
           other.type == this.type &&
           other.role == this.role &&
           other.createdTime == this.createdTime &&
@@ -1166,16 +1261,22 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
 class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   final Value<int> id;
   final Value<int> sessionId;
+  final Value<int?> parentId;
   final Value<String> content;
+  final Value<int?> apiConfigId;
+  final Value<String?> model;
   final Value<MessageType> type;
   final Value<MessageRole> role;
   final Value<DateTime> createdTime;
   final Value<String?> filePath;
-  final Value<String> status;
+  final Value<MessageStatus> status;
   const ChatMessagesCompanion({
     this.id = const Value.absent(),
     this.sessionId = const Value.absent(),
+    this.parentId = const Value.absent(),
     this.content = const Value.absent(),
+    this.apiConfigId = const Value.absent(),
+    this.model = const Value.absent(),
     this.type = const Value.absent(),
     this.role = const Value.absent(),
     this.createdTime = const Value.absent(),
@@ -1185,20 +1286,27 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   ChatMessagesCompanion.insert({
     this.id = const Value.absent(),
     required int sessionId,
+    this.parentId = const Value.absent(),
     required String content,
+    this.apiConfigId = const Value.absent(),
+    this.model = const Value.absent(),
     required MessageType type,
     required MessageRole role,
     this.createdTime = const Value.absent(),
     this.filePath = const Value.absent(),
-    this.status = const Value.absent(),
+    required MessageStatus status,
   })  : sessionId = Value(sessionId),
         content = Value(content),
         type = Value(type),
-        role = Value(role);
+        role = Value(role),
+        status = Value(status);
   static Insertable<ChatMessage> custom({
     Expression<int>? id,
     Expression<int>? sessionId,
+    Expression<int>? parentId,
     Expression<String>? content,
+    Expression<int>? apiConfigId,
+    Expression<String>? model,
     Expression<String>? type,
     Expression<String>? role,
     Expression<DateTime>? createdTime,
@@ -1208,7 +1316,10 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (sessionId != null) 'session_id': sessionId,
+      if (parentId != null) 'parent_id': parentId,
       if (content != null) 'content': content,
+      if (apiConfigId != null) 'api_config_id': apiConfigId,
+      if (model != null) 'model': model,
       if (type != null) 'type': type,
       if (role != null) 'role': role,
       if (createdTime != null) 'created_time': createdTime,
@@ -1220,16 +1331,22 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   ChatMessagesCompanion copyWith(
       {Value<int>? id,
       Value<int>? sessionId,
+      Value<int?>? parentId,
       Value<String>? content,
+      Value<int?>? apiConfigId,
+      Value<String?>? model,
       Value<MessageType>? type,
       Value<MessageRole>? role,
       Value<DateTime>? createdTime,
       Value<String?>? filePath,
-      Value<String>? status}) {
+      Value<MessageStatus>? status}) {
     return ChatMessagesCompanion(
       id: id ?? this.id,
       sessionId: sessionId ?? this.sessionId,
+      parentId: parentId ?? this.parentId,
       content: content ?? this.content,
+      apiConfigId: apiConfigId ?? this.apiConfigId,
+      model: model ?? this.model,
       type: type ?? this.type,
       role: role ?? this.role,
       createdTime: createdTime ?? this.createdTime,
@@ -1247,8 +1364,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     if (sessionId.present) {
       map['session_id'] = Variable<int>(sessionId.value);
     }
+    if (parentId.present) {
+      map['parent_id'] = Variable<int>(parentId.value);
+    }
     if (content.present) {
       map['content'] = Variable<String>(content.value);
+    }
+    if (apiConfigId.present) {
+      map['api_config_id'] = Variable<int>(apiConfigId.value);
+    }
+    if (model.present) {
+      map['model'] = Variable<String>(model.value);
     }
     if (type.present) {
       map['type'] =
@@ -1265,7 +1391,8 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
       map['file_path'] = Variable<String>(filePath.value);
     }
     if (status.present) {
-      map['status'] = Variable<String>(status.value);
+      map['status'] = Variable<String>(
+          $ChatMessagesTable.$converterstatus.toSql(status.value));
     }
     return map;
   }
@@ -1275,7 +1402,10 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     return (StringBuffer('ChatMessagesCompanion(')
           ..write('id: $id, ')
           ..write('sessionId: $sessionId, ')
+          ..write('parentId: $parentId, ')
           ..write('content: $content, ')
+          ..write('apiConfigId: $apiConfigId, ')
+          ..write('model: $model, ')
           ..write('type: $type, ')
           ..write('role: $role, ')
           ..write('createdTime: $createdTime, ')
@@ -1903,20 +2033,20 @@ typedef $$ChatSessionsTableCreateCompanionBuilder = ChatSessionsCompanion
     Function({
   Value<int> id,
   required String title,
-  Value<DateTime> createdTime,
-  Value<DateTime> updatedTime,
   Value<int?> apiConfigId,
   Value<String?> model,
+  Value<DateTime> createdTime,
+  Value<DateTime> updatedTime,
   Value<bool> isFavorite,
 });
 typedef $$ChatSessionsTableUpdateCompanionBuilder = ChatSessionsCompanion
     Function({
   Value<int> id,
   Value<String> title,
-  Value<DateTime> createdTime,
-  Value<DateTime> updatedTime,
   Value<int?> apiConfigId,
   Value<String?> model,
+  Value<DateTime> createdTime,
+  Value<DateTime> updatedTime,
   Value<bool> isFavorite,
 });
 
@@ -1955,17 +2085,17 @@ class $$ChatSessionsTableFilterComposer
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<DateTime> get createdTime => $composableBuilder(
-      column: $table.createdTime, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get updatedTime => $composableBuilder(
-      column: $table.updatedTime, builder: (column) => ColumnFilters(column));
-
   ColumnFilters<int> get apiConfigId => $composableBuilder(
       column: $table.apiConfigId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get model => $composableBuilder(
       column: $table.model, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdTime => $composableBuilder(
+      column: $table.createdTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedTime => $composableBuilder(
+      column: $table.updatedTime, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => ColumnFilters(column));
@@ -2007,17 +2137,17 @@ class $$ChatSessionsTableOrderingComposer
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<DateTime> get createdTime => $composableBuilder(
-      column: $table.createdTime, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get updatedTime => $composableBuilder(
-      column: $table.updatedTime, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<int> get apiConfigId => $composableBuilder(
       column: $table.apiConfigId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get model => $composableBuilder(
       column: $table.model, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdTime => $composableBuilder(
+      column: $table.createdTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedTime => $composableBuilder(
+      column: $table.updatedTime, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => ColumnOrderings(column));
@@ -2038,17 +2168,17 @@ class $$ChatSessionsTableAnnotationComposer
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdTime => $composableBuilder(
-      column: $table.createdTime, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedTime => $composableBuilder(
-      column: $table.updatedTime, builder: (column) => column);
-
   GeneratedColumn<int> get apiConfigId => $composableBuilder(
       column: $table.apiConfigId, builder: (column) => column);
 
   GeneratedColumn<String> get model =>
       $composableBuilder(column: $table.model, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdTime => $composableBuilder(
+      column: $table.createdTime, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedTime => $composableBuilder(
+      column: $table.updatedTime, builder: (column) => column);
 
   GeneratedColumn<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => column);
@@ -2100,37 +2230,37 @@ class $$ChatSessionsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> title = const Value.absent(),
-            Value<DateTime> createdTime = const Value.absent(),
-            Value<DateTime> updatedTime = const Value.absent(),
             Value<int?> apiConfigId = const Value.absent(),
             Value<String?> model = const Value.absent(),
+            Value<DateTime> createdTime = const Value.absent(),
+            Value<DateTime> updatedTime = const Value.absent(),
             Value<bool> isFavorite = const Value.absent(),
           }) =>
               ChatSessionsCompanion(
             id: id,
             title: title,
-            createdTime: createdTime,
-            updatedTime: updatedTime,
             apiConfigId: apiConfigId,
             model: model,
+            createdTime: createdTime,
+            updatedTime: updatedTime,
             isFavorite: isFavorite,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String title,
-            Value<DateTime> createdTime = const Value.absent(),
-            Value<DateTime> updatedTime = const Value.absent(),
             Value<int?> apiConfigId = const Value.absent(),
             Value<String?> model = const Value.absent(),
+            Value<DateTime> createdTime = const Value.absent(),
+            Value<DateTime> updatedTime = const Value.absent(),
             Value<bool> isFavorite = const Value.absent(),
           }) =>
               ChatSessionsCompanion.insert(
             id: id,
             title: title,
-            createdTime: createdTime,
-            updatedTime: updatedTime,
             apiConfigId: apiConfigId,
             model: model,
+            createdTime: createdTime,
+            updatedTime: updatedTime,
             isFavorite: isFavorite,
           ),
           withReferenceMapper: (p0) => p0
@@ -2182,23 +2312,29 @@ typedef $$ChatMessagesTableCreateCompanionBuilder = ChatMessagesCompanion
     Function({
   Value<int> id,
   required int sessionId,
+  Value<int?> parentId,
   required String content,
+  Value<int?> apiConfigId,
+  Value<String?> model,
   required MessageType type,
   required MessageRole role,
   Value<DateTime> createdTime,
   Value<String?> filePath,
-  Value<String> status,
+  required MessageStatus status,
 });
 typedef $$ChatMessagesTableUpdateCompanionBuilder = ChatMessagesCompanion
     Function({
   Value<int> id,
   Value<int> sessionId,
+  Value<int?> parentId,
   Value<String> content,
+  Value<int?> apiConfigId,
+  Value<String?> model,
   Value<MessageType> type,
   Value<MessageRole> role,
   Value<DateTime> createdTime,
   Value<String?> filePath,
-  Value<String> status,
+  Value<MessageStatus> status,
 });
 
 final class $$ChatMessagesTableReferences
@@ -2250,8 +2386,17 @@ class $$ChatMessagesTableFilterComposer
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<int> get parentId => $composableBuilder(
+      column: $table.parentId, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get apiConfigId => $composableBuilder(
+      column: $table.apiConfigId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get model => $composableBuilder(
+      column: $table.model, builder: (column) => ColumnFilters(column));
 
   ColumnWithTypeConverterFilters<MessageType, MessageType, String> get type =>
       $composableBuilder(
@@ -2269,8 +2414,10 @@ class $$ChatMessagesTableFilterComposer
   ColumnFilters<String> get filePath => $composableBuilder(
       column: $table.filePath, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get status => $composableBuilder(
-      column: $table.status, builder: (column) => ColumnFilters(column));
+  ColumnWithTypeConverterFilters<MessageStatus, MessageStatus, String>
+      get status => $composableBuilder(
+          column: $table.status,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   $$ChatSessionsTableFilterComposer get sessionId {
     final $$ChatSessionsTableFilterComposer composer = $composerBuilder(
@@ -2326,8 +2473,17 @@ class $$ChatMessagesTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get parentId => $composableBuilder(
+      column: $table.parentId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get apiConfigId => $composableBuilder(
+      column: $table.apiConfigId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get model => $composableBuilder(
+      column: $table.model, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
@@ -2377,8 +2533,17 @@ class $$ChatMessagesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<int> get parentId =>
+      $composableBuilder(column: $table.parentId, builder: (column) => column);
+
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<int> get apiConfigId => $composableBuilder(
+      column: $table.apiConfigId, builder: (column) => column);
+
+  GeneratedColumn<String> get model =>
+      $composableBuilder(column: $table.model, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<MessageType, String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -2392,7 +2557,7 @@ class $$ChatMessagesTableAnnotationComposer
   GeneratedColumn<String> get filePath =>
       $composableBuilder(column: $table.filePath, builder: (column) => column);
 
-  GeneratedColumn<String> get status =>
+  GeneratedColumnWithTypeConverter<MessageStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
   $$ChatSessionsTableAnnotationComposer get sessionId {
@@ -2462,17 +2627,23 @@ class $$ChatMessagesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<int> sessionId = const Value.absent(),
+            Value<int?> parentId = const Value.absent(),
             Value<String> content = const Value.absent(),
+            Value<int?> apiConfigId = const Value.absent(),
+            Value<String?> model = const Value.absent(),
             Value<MessageType> type = const Value.absent(),
             Value<MessageRole> role = const Value.absent(),
             Value<DateTime> createdTime = const Value.absent(),
             Value<String?> filePath = const Value.absent(),
-            Value<String> status = const Value.absent(),
+            Value<MessageStatus> status = const Value.absent(),
           }) =>
               ChatMessagesCompanion(
             id: id,
             sessionId: sessionId,
+            parentId: parentId,
             content: content,
+            apiConfigId: apiConfigId,
+            model: model,
             type: type,
             role: role,
             createdTime: createdTime,
@@ -2482,17 +2653,23 @@ class $$ChatMessagesTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required int sessionId,
+            Value<int?> parentId = const Value.absent(),
             required String content,
+            Value<int?> apiConfigId = const Value.absent(),
+            Value<String?> model = const Value.absent(),
             required MessageType type,
             required MessageRole role,
             Value<DateTime> createdTime = const Value.absent(),
             Value<String?> filePath = const Value.absent(),
-            Value<String> status = const Value.absent(),
+            required MessageStatus status,
           }) =>
               ChatMessagesCompanion.insert(
             id: id,
             sessionId: sessionId,
+            parentId: parentId,
             content: content,
+            apiConfigId: apiConfigId,
+            model: model,
             type: type,
             role: role,
             createdTime: createdTime,

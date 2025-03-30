@@ -8,7 +8,7 @@
   "delete": "삭제",
   "confirm": "확인",
   "confirm_delete": "삭제 확인",
-  "confirm_delete_message": "이 API 구성을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+  "confirm_delete_message": "삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
   "share": "공유",
   "shared": "공유됨",
   "import": "가져오기",

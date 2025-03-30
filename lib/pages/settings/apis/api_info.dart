@@ -523,16 +523,16 @@ class _ApiInfoState extends State<ApiInfo> {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text(tr(LocaleKeys.confirmDelete)),
-                        content: Text(tr(LocaleKeys.confirmDeleteMessage)),
+                        title: Text(LocaleKeys.confirmDelete).tr(),
+                        content: Text(LocaleKeys.confirmDeleteMessage).tr(),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(false),
-                            child: Text(tr(LocaleKeys.cancel)),
+                            child: Text(LocaleKeys.cancel).tr(),
                           ),
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(true),
-                            child: Text(tr(LocaleKeys.confirm)),
+                            child: Text(LocaleKeys.confirm).tr(),
                           ),
                         ],
                       ),

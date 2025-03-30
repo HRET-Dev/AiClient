@@ -8,7 +8,7 @@
   "delete": "Delete",
   "confirm": "Confirm",
   "confirm_delete": "Confirm Delete",
-  "confirm_delete_message": "Are you sure you want to delete this API configuration? This action cannot be undone.",
+  "confirm_delete_message": "Are you sure you want to delete this? This action cannot be undone.",
   "share": "Share",
   "shared": "Shared",
   "import": "Import",

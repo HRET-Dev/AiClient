@@ -40,6 +40,20 @@ class ChatSessionService {
     return await _sessionRepository.createSession(session);
   }
 
+  // 更新会话参数
+  Future<void> updateSession(int id, {int? apiConfigId, String? model}) async {
+    final session = await _sessionRepository.getSessionById(id);
+    if (session != null) {
+      final updatedSession = session.copyWith(
+        apiConfigId:
+            apiConfigId == null ? const Value.absent() : Value(apiConfigId),
+        model: model == null ? const Value.absent() : Value(model),
+        updatedTime: DateTime.now(),
+      );
+      await _sessionRepository.updateSession(updatedSession);
+    }
+  }
+
   // 更新会话标题
   Future<bool> updateSessionTitle(int id, String title) async {
     final session = await _sessionRepository.getSessionById(id);
@@ -163,7 +177,7 @@ class ChatSessionService {
           filePath: msgData['filePath'] == null
               ? const Value.absent()
               : Value(msgData['filePath']),
-          status: Value(msgData['status'] ?? 'sent'),
+          status: convertStatus(msgData['status']),
         );
 
         await _messageRepository.createMessage(message);

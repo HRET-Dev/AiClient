@@ -24,53 +24,31 @@ class ChatMessageService {
   Future<int> createTextMessage({
     required int sessionId,
     required String content,
+    required int apiConfigId,
+    required String model,
     required MessageRole role,
+    required MessageStatus status,
   }) async {
+    // 创建消息
     final message = ChatMessagesCompanion.insert(
       sessionId: sessionId,
       content: content,
+      apiConfigId: Value(apiConfigId),
+      model: Value(model),
       type: MessageType.text,
       role: role,
+      status: status,
     );
-    
-    final messageId = await _messageRepository.createMessage(message);
-    
-    // 更新会话的最后更新时间
-    final session = await _sessionRepository.getSessionById(sessionId);
-    if (session != null) {
-      await _sessionRepository.updateSession(
-        session.copyWith(updatedTime: DateTime.now())
-      );
-    }
-    
-    return messageId;
-  }
 
-  // 创建图片消息
-  Future<int> createImageMessage({
-    required int sessionId,
-    required String content,
-    required MessageRole role,
-    required String imagePath,
-  }) async {
-    final message = ChatMessagesCompanion.insert(
-      sessionId: sessionId,
-      content: content,
-      type: MessageType.image,
-      role: role,
-      filePath: Value(imagePath),
-    );
-    
     final messageId = await _messageRepository.createMessage(message);
-    
+
     // 更新会话的最后更新时间
     final session = await _sessionRepository.getSessionById(sessionId);
     if (session != null) {
-      await _sessionRepository.updateSession(
-        session.copyWith(updatedTime: DateTime.now())
-      );
+      await _sessionRepository
+          .updateSession(session.copyWith(updatedTime: DateTime.now()));
     }
-    
+
     return messageId;
   }
 
@@ -78,27 +56,31 @@ class ChatMessageService {
   Future<int> createFileMessage({
     required int sessionId,
     required String content,
+    required int apiConfigId,
+    required String model,
     required MessageRole role,
     required String filePath,
+    required MessageStatus status,
   }) async {
     final message = ChatMessagesCompanion.insert(
-      sessionId: sessionId,
-      content: content,
-      type: MessageType.file,
-      role: role,
-      filePath: Value(filePath),
-    );
-    
+        sessionId: sessionId,
+        content: content,
+        apiConfigId: Value(apiConfigId),
+        model: Value(model),
+        type: MessageType.file,
+        role: role,
+        filePath: Value(filePath),
+        status: status);
+
     final messageId = await _messageRepository.createMessage(message);
-    
+
     // 更新会话的最后更新时间
     final session = await _sessionRepository.getSessionById(sessionId);
     if (session != null) {
-      await _sessionRepository.updateSession(
-        session.copyWith(updatedTime: DateTime.now())
-      );
+      await _sessionRepository
+          .updateSession(session.copyWith(updatedTime: DateTime.now()));
     }
-    
+
     return messageId;
   }
 
@@ -113,7 +95,7 @@ class ChatMessageService {
   }
 
   // 更新消息状态
-  Future<bool> updateMessageStatus(int id, String status) async {
+  Future<bool> updateMessageStatus(int id, MessageStatus status) async {
     final message = await _messageRepository.getMessageById(id);
     if (message != null) {
       final updatedMessage = message.copyWith(status: status);
@@ -130,7 +112,8 @@ class ChatMessageService {
 
   // 删除会话的所有消息
   Future<bool> deleteMessagesBySessionId(int sessionId) async {
-    final result = await _messageRepository.deleteMessagesBySessionId(sessionId);
+    final result =
+        await _messageRepository.deleteMessagesBySessionId(sessionId);
     return result > 0;
   }
 
@@ -140,15 +123,5 @@ class ChatMessageService {
       return [];
     }
     return await _messageRepository.searchMessages(query);
-  }
-
-  // 将ChatMessage转换为ChatMessageInfo
-  ChatMessageInfo convertToMessageInfo(ChatMessage message, {String defaultModelName = 'Unknown'}) {
-    return ChatMessageInfo(
-      content: message.content,
-      isUser: message.role == MessageRole.user,
-      modelName: defaultModelName,
-      createdTime: message.createdTime,
-    );
   }
 }
