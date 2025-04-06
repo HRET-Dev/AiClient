@@ -53,6 +53,12 @@ abstract class LocaleKeys {
   /// 请选择
   static const pleaseSelect = 'please_select';
   
+  /// 复制
+  static const copy = 'copy';
+
+  /// 复制完成
+  static const copySuccess = 'copy_success';
+  
   //===================================================
   // 侧边栏 (Sidebar)
   //===================================================
@@ -66,6 +72,9 @@ abstract class LocaleKeys {
   /// 侧边栏 - 应用名称
   static const sidebarAppName = 'sidebar.app_name';
 
+  /// 侧边栏 - 所有对话列表
+  static const sidebarAllChats ='sidebar.all_chats';
+
   //===================================================
   // 聊天页面 (Chat Page)
   //===================================================
@@ -75,9 +84,6 @@ abstract class LocaleKeys {
 
   /// 聊天页 - 聊天回复等待提示值
   static const chatPageThinking = 'chat_page.thinking';
-
-  /// 聊天页 - 聊天内容复制成功提示信息
-  static const chatPageCopySuccess = 'chat_page.copy_success';
 
   /// 聊天页 - 底部输入框提示值
   static const chatPageInputHintText = 'chat_page.input_hintText';

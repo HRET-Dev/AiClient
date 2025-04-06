@@ -15,15 +15,17 @@
   "clipboard_empty": "クリップボードが空です",
   "this_feature_is_under_development": "この機能は開発中です",
   "please_select": "選択してください",
+  "copy": "コピー",
+  "copy_success": "コピー成功",
   "sidebar": {
     "show": "サイドバーを表示",
     "hide": "サイドバーを隠す",
-    "app_name": "AI クライアント"
+    "app_name": "AI クライアント",
+    "all_chats": "すべてのチャット"
   },
   "chat_page": {
     "new_chat": "新しいチャット",
     "thinking": "考え中...",
-    "copy_success": "コピー成功",
     "input_hintText": "ここにメッセージを入力..."
   },
   "settings_page": {

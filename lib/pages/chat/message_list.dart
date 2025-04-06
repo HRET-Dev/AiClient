@@ -1,7 +1,9 @@
+import 'package:ai_client/common/utils/message_markdown.dart';
 import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/models/chat_message.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class MessageList extends StatelessWidget {
   final List<ChatMessage> messages;
@@ -12,6 +14,99 @@ class MessageList extends StatelessWidget {
     required this.messages,
     required this.scrollController,
   });
+
+  /// 根据模型名称获取对应的图标
+  Widget _getModelIcon(BuildContext context, String modelName) {
+    // 使用主题颜色
+    final Color iconColor = Theme.of(context).colorScheme.onPrimary;
+
+    // 默认图标
+    Widget defaultIcon = const Icon(
+      Icons.smart_toy_outlined,
+      color: Colors.white,
+      size: 16,
+    );
+
+    // 转换为小写进行模糊匹配
+    String lowerModelName = modelName.toLowerCase();
+
+    // 模糊匹配不同的模型
+    if (lowerModelName.contains('gpt') ||
+        RegExp(r'^o\d+').hasMatch(lowerModelName)) {
+      // 所有GPT模型统一使用OpenAI图标
+      return SvgPicture.asset(
+        'assets/assistant/openai.svg',
+        width: 16,
+        height: 16,
+        // 使用主题颜色
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        // SVG加载失败时显示默认图标
+        placeholderBuilder: (BuildContext context) => defaultIcon,
+      );
+    } else if (lowerModelName.contains('claude')) {
+      return SvgPicture.asset(
+        'assets/assistant/claude.svg',
+        width: 16,
+        height: 16,
+        // 使用主题颜色
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        // SVG加载失败时显示默认图标
+        placeholderBuilder: (BuildContext context) => defaultIcon,
+      );
+    } else if (lowerModelName.contains('gemini')) {
+      return SvgPicture.asset(
+        'assets/assistant/gemini.svg',
+        width: 16,
+        height: 16,
+        // 使用主题颜色
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        // SVG加载失败时显示默认图标
+        placeholderBuilder: (BuildContext context) => defaultIcon,
+      );
+    } else if (lowerModelName.contains('llama')) {
+      return SvgPicture.asset(
+        'assets/assistant/ollama.svg',
+        width: 16,
+        height: 16,
+        // 使用主题颜色
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        // SVG加载失败时显示默认图标
+        placeholderBuilder: (BuildContext context) => defaultIcon,
+      );
+    } else if (lowerModelName.contains('deepseek')) {
+      return SvgPicture.asset(
+        'assets/assistant/deepseek.svg',
+        width: 16,
+        height: 16,
+        // 使用主题颜色
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        // SVG加载失败时显示默认图标
+        placeholderBuilder: (BuildContext context) => defaultIcon,
+      );
+    } else if (lowerModelName.contains('grok')) {
+      return SvgPicture.asset(
+        'assets/assistant/grok.svg',
+        width: 16,
+        height: 16,
+        // 使用主题颜色
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        // SVG加载失败时显示默认图标
+        placeholderBuilder: (BuildContext context) => defaultIcon,
+      );
+    } else if (lowerModelName.contains('qwen')) {
+      return SvgPicture.asset(
+        'assets/assistant/qwen.svg',
+        width: 16,
+        height: 16,
+        // 使用主题颜色
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        // SVG加载失败时显示默认图标
+        placeholderBuilder: (BuildContext context) => defaultIcon,
+      );
+    } else {
+      return defaultIcon;
+    }
+  }
 
   /// 构建消息项
   Widget _buildMessageItem(BuildContext context, ChatMessage message) {
@@ -39,6 +134,12 @@ class MessageList extends StatelessWidget {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
 
+    // 使用主题颜色
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    /// 时间格式化器
+    final dateFormat = DateFormat('HH:mm:ss');
+
     return Container(
       width: double.infinity,
       padding:
@@ -52,13 +153,13 @@ class MessageList extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: Colors.deepPurpleAccent,
+              color: colorScheme.primaryContainer,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.shade300, width: 1),
+              border: Border.all(color: colorScheme.primary, width: 1),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.person,
-              color: Colors.white,
+              color: colorScheme.onPrimaryContainer,
               size: 16,
             ),
           ),
@@ -75,18 +176,30 @@ class MessageList extends StatelessWidget {
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 4),
-                // 消息内容
-                MarkdownBody(
-                  data: message.content,
-                  styleSheet: MarkdownStyleSheet(
-                    p: TextStyle(fontSize: 15, height: 1.4),
-                    strong: const TextStyle(fontWeight: FontWeight.bold),
-                    em: const TextStyle(fontStyle: FontStyle.italic),
-                    code: TextStyle(fontFamily: 'monospace'),
+                // 时间
+                Text(
+                  dateFormat.format(message.createdTime),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
-                  selectable: true,
                 ),
+                const SizedBox(height: 4),
+
+                // 消息内容
+                // MarkdownBody(
+                //   data: message.content,
+                //   styleSheet: MarkdownStyleSheet(
+                //     p: TextStyle(fontSize: 15, height: 1.4),
+                //     strong: const TextStyle(fontWeight: FontWeight.bold),
+                //     em: const TextStyle(fontStyle: FontStyle.italic),
+                //     code: TextStyle(fontFamily: 'monospace'),
+                //   ),
+                //   selectable: true,
+                // ),
+
+                // markdown渲染消息内容
+                MessageMarkdown(content: message.content),
               ],
             ),
           ),
@@ -101,6 +214,15 @@ class MessageList extends StatelessWidget {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
 
+    // 使用主题颜色
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    // 根据模型名称获取对应的图标
+    Widget modelIcon = _getModelIcon(context, message.model.toString());
+
+    /// 时间格式化器
+    final dateFormat = DateFormat('HH:mm:ss');
+
     return Container(
       width: double.infinity,
       padding:
@@ -114,14 +236,13 @@ class MessageList extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: Colors.blueAccent,
+              // 使用主题的主要颜色
+              color: colorScheme.primary,
               shape: BoxShape.circle,
+              border: Border.all(color: colorScheme.primary, width: 1),
             ),
-            child: Icon(
-              Icons.smart_toy_outlined,
-              color: Colors.white,
-              size: 16,
-            ),
+            padding: const EdgeInsets.all(3),
+            child: modelIcon,
           ),
           // 消息内容区域
           Expanded(
@@ -136,28 +257,40 @@ class MessageList extends StatelessWidget {
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 4),
-                // 消息内容
-                MarkdownBody(
-                  data: message.content,
-                  styleSheet: MarkdownStyleSheet(
-                    p: TextStyle(fontSize: 15, height: 1.4),
-                    strong: const TextStyle(fontWeight: FontWeight.bold),
-                    em: const TextStyle(fontStyle: FontStyle.italic),
-                    code: TextStyle(fontFamily: 'monospace'),
-                    blockquote: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontStyle: FontStyle.italic),
-                    blockquoteDecoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(2),
-                      border: Border(
-                          left: BorderSide(
-                              color: Colors.grey.shade300, width: 4)),
-                    ),
+                // 时间
+                Text(
+                  dateFormat.format(message.createdTime),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
-                  selectable: true,
                 ),
+                const SizedBox(height: 4),
+
+                // 消息内容
+                // MarkdownBody(
+                //   data: message.content,
+                //   styleSheet: MarkdownStyleSheet(
+                //     p: TextStyle(fontSize: 15, height: 1.4),
+                //     strong: const TextStyle(fontWeight: FontWeight.bold),
+                //     em: const TextStyle(fontStyle: FontStyle.italic),
+                //     code: TextStyle(fontFamily: 'monospace'),
+                //     blockquote: TextStyle(
+                //         color: Colors.grey.shade700,
+                //         fontStyle: FontStyle.italic),
+                //     blockquoteDecoration: BoxDecoration(
+                //       color: Colors.grey.shade100,
+                //       borderRadius: BorderRadius.circular(2),
+                //       border: Border(
+                //           left: BorderSide(
+                //               color: Colors.grey.shade300, width: 4)),
+                //     ),
+                //   ),
+                //   selectable: true,
+                // ),
+
+                // markdown渲染消息内容
+                MessageMarkdown(content: message.content),
               ],
             ),
           ),

@@ -15,15 +15,17 @@
   "clipboard_empty": "Clipboard is empty",
   "this_feature_is_under_development": "This feature is under development",
   "please_select": "Please select",
+  "copy": "Copy",
+  "copy_success": "Copied successfully",
   "sidebar": {
     "show": "Show Sidebar",
     "hide": "Hide Sidebar",
-    "app_name": "AI Client"
+    "app_name": "AI Client",
+    "all_chats": "All Chats"
   },
   "chat_page": {
     "new_chat": "New Chat",
     "thinking": "Thinking...",
-    "copy_success": "Copied successfully",
     "input_hintText": "Type a message here..."
   },
   "settings_page": {

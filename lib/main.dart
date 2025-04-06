@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:ai_client/pages/chat/chat_provider.dart';
 import 'package:ai_client/pages/home_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
@@ -58,25 +60,31 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      // 配置Easy_Localization
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      // 明亮主题
-      theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color.fromARGB(255, 171, 194, 235))),
-      // 黑暗主题
-      darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color.fromARGB(255, 17, 95, 230),
-              brightness: Brightness.dark)),
-      // 主题模式
-      themeMode: ThemeMode.system,
-      home: HomePage(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => HomePageProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
+      child: MaterialApp(
+        // 配置Easy_Localization
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
+        // 明亮主题
+        theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color.fromARGB(255, 171, 194, 235))),
+        // 黑暗主题
+        darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color.fromARGB(255, 17, 95, 230),
+                brightness: Brightness.dark)),
+        // 主题模式
+        themeMode: ThemeMode.system,
+        home: HomePage(),
+      ),
     );
   }
 }

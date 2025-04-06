@@ -15,15 +15,17 @@
   "clipboard_empty": "클립보드가 비어 있습니다",
   "this_feature_is_under_development": "이 기능은 개발 중입니다",
   "please_select": "선택해 주세요",
+  "copy": "복사",
+  "copy_success": "복사 성공",
   "sidebar": {
     "show": "사이드바 표시",
     "hide": "사이드바 숨기기",
-    "app_name": "AI 클라이언트"
+    "app_name": "AI 클라이언트",
+    "all_chats": "모든 채팅"
   },
   "chat_page": {
     "new_chat": "새 채팅",
     "thinking": "생각 중...",
-    "copy_success": "복사 성공",
     "input_hintText": "여기에 메시지를 입력하세요..."
   },
   "settings_page": {

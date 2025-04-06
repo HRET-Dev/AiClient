@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 /// 加载指示器工具类
 class LoadingIndicator {
@@ -13,11 +12,21 @@ class LoadingIndicator {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center, // 垂直居中
           children: [
-            TDLoading(
-              size: TDLoadingSize.small,
-              icon: TDLoadingIcon.circle,
-              text: '加载中…',
-              axis: Axis.vertical,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '加载中…',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

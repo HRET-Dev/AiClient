@@ -15,15 +15,17 @@
   "clipboard_empty": "剪貼板為空",
   "this_feature_is_under_development": "該功能正在開發中",
   "please_select": "請選擇",
+  "copy": "複製",
+  "copy_success": "複製成功",
   "sidebar": {
     "show": "顯示側邊欄",
     "hide": "隱藏側邊欄",
-    "app_name": "AI 客戶端"
+    "app_name": "AI 客戶端",
+    "all_chats": "所有聊天"
   },
   "chat_page": {
     "new_chat": "新聊天",
     "thinking": "正在思考中...",
-    "copy_success": "複製成功",
     "input_hintText": "在這裡輸入消息..."
   },
   "settings_page": {
