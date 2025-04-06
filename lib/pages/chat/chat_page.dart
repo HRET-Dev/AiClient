@@ -40,6 +40,10 @@ class ChatPageState extends State<ChatPage> {
       // 根据会话ID查询聊天信息
       await _chatProvider.loadChatMessages(widget.sessionId!,
           chatSession: null);
+    } else if (_chatProvider.chatSessionId > 0) {
+      // 根据会话ID查询聊天信息
+      await _chatProvider.loadChatMessages(_chatProvider.chatSessionId,
+          chatSession: null);
     }
   }
 

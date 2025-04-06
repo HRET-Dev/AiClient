@@ -13,6 +13,7 @@ import 'package:ai_client/services/chat_session_service.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatProvider extends ChangeNotifier {
   // 使用 ChatHttp 调用 OpenAI 接口
@@ -30,6 +31,9 @@ class ChatProvider extends ChangeNotifier {
   /// 聊天信息 服务类
   late final ChatMessageService chatMessageService;
 
+  /// SharedPreferences 当前会话ID键名
+  final String currentSessionId = "currentSessionId";
+
   // 构造函数
   ChatProvider() {
     // 初始化数据源
@@ -45,6 +49,9 @@ class ChatProvider extends ChangeNotifier {
 
     // 初始化 API 配置
     loadApiConfig();
+
+    // 从shared_preferences 加载当前会话ID
+    loadChatSessionId();
   }
 
   /// 从 SQLite 数据库中加载 API 配置信息
@@ -54,6 +61,38 @@ class ChatProvider extends ChangeNotifier {
       apiConfigs = apis;
       notifyListeners();
     }
+  }
+
+  /// 从 SharedPreferences 加载当前会话ID
+  Future<void> loadChatSessionId() async {
+    // 获取SharedPreferences实例
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // 从shared_preferences中获取当前会话ID
+    int? sessionId = prefs.getInt(currentSessionId);
+
+    // 如果会话ID不为空，则加载对应的聊天记录
+    if (sessionId != null) {
+      loadChatMessages(sessionId);
+    }
+  }
+
+  /// 保存当前会话ID
+  Future<void> saveChatSessionId(int sessionId) async {
+    // 获取SharedPreferences实例
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // 保存当前会话ID
+    prefs.setInt(currentSessionId, sessionId);
+  }
+
+  /// 删除当前会话ID
+  Future<void> removeChatSessionId() async {
+    // 获取SharedPreferences实例
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // 删除当前会话ID
+    prefs.remove(currentSessionId);
   }
 
   // 消息列表
@@ -134,10 +173,13 @@ class ChatProvider extends ChangeNotifier {
     // 根据会话ID 查询会话信息
     final messages = await chatMessageService.getMessagesBySessionId(sessionId);
 
-    // 设置聊天会话ID (确保无论如何都设置)
+    // 设置聊天会话ID
     chatSessionId = sessionId;
 
-    // 设置聊天信息 (即使为空也设置，以清除旧消息)
+    // 保存当前会话ID
+    saveChatSessionId(chatSessionId);
+
+    // 设置聊天信息
     this.messages = messages;
 
     // 无论是否有消息，都通知监听器更新UI
@@ -411,8 +453,13 @@ class ChatProvider extends ChangeNotifier {
         int sessionId = await chatSessionService.createSession(title,
             apiConfigId: currentApi!.id, model: currentModel);
 
+        // 更新会话ID
         chatSessionId = sessionId;
-        notifyListeners();
+        // 更新会话名称
+        chatSessionName = title;
+
+        // 保存当前会话ID
+        saveChatSessionId(sessionId);
       }
 
       // 创建聊天信息
@@ -448,6 +495,10 @@ class ChatProvider extends ChangeNotifier {
     chatSessionName = "新会话";
     currentApi = null;
     currentModel = "";
+
+    // 清除当前会话ID
+    removeChatSessionId();
+    // 通知监听器更新UI
     notifyListeners();
   }
 
