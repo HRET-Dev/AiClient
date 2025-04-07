@@ -44,4 +44,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-android/app/aiclient-keystore.p12
+# Android 签名密钥文件
+android/app/*keystore.p12

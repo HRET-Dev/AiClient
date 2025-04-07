@@ -3,24 +3,22 @@
 AiClient 是一个跨平台的 AI 聊天客户端应用程序，支持多种 AI API 服务商和多语言界面。
 
 ## 功能预览
-![image](/README/home.png)
-![image](/README/chat.png) 
-![image](/README/history.png) 
-![image](/README/setting.png)
-![image](/README/setting_api.png)
+### 移动端
+<img src="./README/mobile_chat.png" alt="chat" style="zoom:25%;" />
+<img src="./README/mobile_sidebar.png" alt="chat" style="zoom:36%;" />
 
-## 功能特点
+### 桌面端
+<img src="./README/home.png" alt="chat" style="zoom:23%;" />
+<img src="./README/chat.png" alt="chat" style="zoom:23%;" />
+<img src="./README/history.png" alt="chat" style="zoom:23%;" />
+<img src="./README/setting.png" alt="chat" style="zoom:23%;" />
+<img src="./README/setting_api.png" alt="chat" style="zoom:25%;" />
 
-- **多 API 支持**：支持连接多种 AI 服务提供商的 API
-- **聊天功能**：与 AI 进行自然语言对话
-- **历史记录**：保存和管理聊天历史
-- **多语言支持**：应用界面支持多种语言切换
-- **API 管理**：添加、编辑、删除和导入 API 配置
 
 ## 技术栈
 
 - 使用 Flutter/Dart 开发
-- 支持 Android、iOS、Windows、macOS 和 Linux 平台
+- 支持 Android、iOS、Windows、macOS、Linux、Web 平台
 
 ## TODO
 
@@ -59,6 +57,34 @@ flutter pub get
 # 生成drift相关代码
 dart run build_runner build
 ```
+
+### 2. ios、Android 平台特定配置
+<details>
+<summary>Android 配置</summary>
+</br>
+
+  #### 2.1 环境要求
+  ```yaml
+  Jdk: 17+
+  ```
+
+  #### 2.2 生成签名文件 跟随提示输入即可
+  **PS：请牢记输入的密钥库口令和密钥口令**
+  ```bash
+  keytool -genkeypair -alias aiclient-key -keyalg RSA -keysize 2048 -validity 36500 -keystore android/app/aiclient-keystore.p12 -storetype PKCS12
+  ```
+
+  #### 2.3 配置签名文件
+  ```bash
+  cat <<EOF > android/key.properties
+  storePassword=密钥库口令
+  keyPassword=密钥口令
+  keyAlias=aiclient-key
+  storeFile=../app/aiclient-keystore.p12
+  EOF
+  ```
+
+</details>
 
 ### 🎉 运行项目
 ```bash

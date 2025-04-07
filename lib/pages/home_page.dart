@@ -16,14 +16,17 @@ class HomePage extends StatefulWidget {
 class HomePageProvider extends ChangeNotifier {
   /// 导航栏当前选中项
   int _selectedIndex = 0;
+
   int get selectedIndex => _selectedIndex;
 
   /// 导航栏标签显示状态
   NavigationRailLabelType _labelType = NavigationRailLabelType.all;
+
   NavigationRailLabelType get labelType => _labelType;
 
   /// 侧边栏宽度
   double _sidebarWidth = 165;
+
   double get sidebarWidth => _sidebarWidth;
 
   /// 侧边栏最小宽度
@@ -34,10 +37,12 @@ class HomePageProvider extends ChangeNotifier {
 
   /// 侧边栏是否显示
   bool _isSidebarVisible = true;
+
   bool get isSidebarVisible => _isSidebarVisible;
 
   /// 侧边栏之前的宽度（用于隐藏后恢复）
   double _previousSidebarWidth = 165;
+
   double get previousSidebarWidth => _previousSidebarWidth;
 
   /// 设置选中的导航项
@@ -338,7 +343,7 @@ class HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 38,
+        toolbarHeight: 42,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
