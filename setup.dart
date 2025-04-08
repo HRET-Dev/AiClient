@@ -275,9 +275,17 @@ class BuildCommand extends Command {
       .toList();
 
   _getLinuxDependencies(Arch arch) async {
+    // 更新软件包列表
     await Build.exec(
       Build.getExecutable("sudo apt update -y"),
     );
+    
+    // 安装基本工具，包括file命令
+    await Build.exec(
+      Build.getExecutable("sudo apt install -y wget curl file"),
+    );
+    
+    // 安装其他依赖
     await Build.exec(
       Build.getExecutable("sudo apt install -y ninja-build libgtk-3-dev"),
     );
