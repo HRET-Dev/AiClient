@@ -1,0 +1,19 @@
+display_name: AiClient
+
+icon: ./assets/icon/icon.png
+
+keywords:
+  - AiClient
+  - AI
+  - Chat
+  - Client  
+
+generic_name: AiClient
+
+
+categories:
+  - Network
+
+startup_notify: true
+
+include: []

@@ -1,7 +1,7 @@
 name: ai_client
-description: "跨平台的AI客户端"
+description: "AI客户端"
 
-version: 0.0.2
+version: 0.0.3
 publish_to: none
 
 environment:
@@ -40,6 +40,7 @@ dev_dependencies:
   build_runner: ^2.4.15
   drift_dev: ^2.25.2
   flutter_lints: ^5.0.0
+  args: ^2.7.0
 
 flutter:
   uses-material-design: true

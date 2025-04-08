@@ -1,0 +1,23 @@
+display_name: AiClient
+
+packager: HRET
+packagerEmail: hret.dev@gmail.com
+license: Other
+
+priority: optional
+section: x11
+installed_size: 6604
+essential: false
+icon: ./assets/icon/icon.png
+
+keywords:
+  - AiClient
+  - AI
+  - Chat
+  - Client  
+
+generic_name: AiClient
+
+group: Applications/Internet
+
+startup_notify: true
