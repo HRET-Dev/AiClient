@@ -279,12 +279,12 @@ class BuildCommand extends Command {
     await Build.exec(
       Build.getExecutable("sudo apt update -y"),
     );
-    
+
     // 安装基本工具，包括file命令
     await Build.exec(
       Build.getExecutable("sudo apt install -y wget curl file"),
     );
-    
+
     // 安装其他依赖
     await Build.exec(
       Build.getExecutable("sudo apt install -y ninja-build libgtk-3-dev"),
@@ -401,8 +401,7 @@ class BuildCommand extends Command {
         _buildFastforge(
           target: target,
           targets: targets,
-          args:
-              "--build-target-platform $defaultTarget",
+          args: "--build-target-platform $defaultTarget",
         );
         return;
       case Target.android:
@@ -443,7 +442,8 @@ class BuildCommand extends Command {
           );
 
           // 复制并重命名 APK 文件，加入版本号
-          final apkName = "${Build.appName}-$appVersion-$archDisplayName.apk";
+          final apkName =
+              "${Build.appName}-$appVersion-android-$archDisplayName.apk";
           final sourceApkPath = join(current, "build", "app", "outputs",
               "flutter-apk", "app-$archDisplayName-release.apk");
           final destApkPath = join(versionDistPath, apkName);
@@ -454,10 +454,45 @@ class BuildCommand extends Command {
         return;
       case Target.macos:
         await _getMacosDependencies();
-        _buildFastforge(
+        await _buildFastforge(
           target: target,
           targets: "dmg",
         );
+
+        // 构建完成后，查找并重命名 DMG 文件
+        final appVersion = await Build.getAppVersion();
+        
+        // 查找DMG 文件
+        print("正在搜索 DMG 文件...");
+        bool found = false;
+        
+        // 检查版本目录
+        final versionDir = Directory(join(Build.distPath, appVersion));
+        if (versionDir.existsSync()) {
+          final files = versionDir.listSync();
+          for (final entity in files) {
+            if (entity is File && 
+                entity.path.endsWith('.dmg') && 
+                entity.path.contains(appVersion)) {
+              print("在版本目录中找到 DMG 文件: ${entity.path}");
+              try {
+                // 在原目录中重命名文件
+                final customDmgName = "${Build.appName}-$appVersion-macos.dmg";
+                final customDmgPath = join(dirname(entity.path), customDmgName);
+                File(entity.path).renameSync(customDmgPath);
+                print("已将 DMG 文件重命名为: $customDmgName");
+                found = true;
+                break;
+              } catch (e) {
+                print("重命名 DMG 文件失败: $e");
+              }
+            }
+          }
+        }
+        
+        if (!found) {
+          print("警告: 未找到任何 DMG 文件，请检查 fastforge 的输出路径");
+        }
         return;
     }
   }
