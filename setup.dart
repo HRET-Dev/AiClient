@@ -10,6 +10,7 @@ enum Target {
   windows,
   linux,
   android,
+  ios,
   macos,
 }
 
@@ -45,6 +46,9 @@ extension TargetExt on Target {
         break;
       case Target.windows:
         extensionName = ".dll";
+        break;
+      case Target.ios:
+        extensionName = ".dylib";
         break;
       case Target.macos:
         extensionName = ".dylib";
@@ -368,7 +372,10 @@ class BuildCommand extends Command {
 
     print(target);
 
-    if (arch == null && target != Target.android && target != Target.macos) {
+    if (arch == null &&
+        target != Target.android &&
+        target != Target.ios &&
+        target != Target.macos) {
       throw "无效的架构参数";
     }
 
@@ -405,11 +412,6 @@ class BuildCommand extends Command {
         );
         return;
       case Target.android:
-        final targetMap = {
-          Arch.arm: "android-arm",
-          Arch.arm64: "android-arm64",
-          Arch.amd64: "android-x64",
-        };
         final archNameMap = {
           Arch.arm: "armeabi-v7a",
           Arch.arm64: "arm64-v8a",
@@ -427,30 +429,43 @@ class BuildCommand extends Command {
           outputDir.createSync(recursive: true);
         }
 
+        // 使用一次性命令构建所有目标架构的APK
+        print("开始构建所有目标架构的Android APK");
+        await Build.exec(
+          name: "build android split-per-abi",
+          Build.getExecutable(
+            "flutter build apk --split-per-abi",
+          ),
+        );
+
+        // 复制并重命名所有生成的APK文件
         for (final buildArch in buildArches) {
-          final buildTarget = targetMap[buildArch];
-          final archDisplayName = archNameMap[buildArch];
+          final archDisplayName = archNameMap[buildArch]!;
 
-          print("开始构建 Android $archDisplayName 版本");
-
-          // 使用 Flutter 直接构建 APK
-          await Build.exec(
-            name: "build android $archDisplayName",
-            Build.getExecutable(
-              "flutter build apk --target-platform $buildTarget --split-per-abi",
-            ),
-          );
-
-          // 复制并重命名 APK 文件，加入版本号
+          // 构建自定义APK名称
           final apkName =
               "${Build.appName}-$appVersion-android-$archDisplayName.apk";
           final sourceApkPath = join(current, "build", "app", "outputs",
               "flutter-apk", "app-$archDisplayName-release.apk");
           final destApkPath = join(versionDistPath, apkName);
 
-          Build.copyFile(sourceApkPath, destApkPath);
-          print("已生成 APK: $destApkPath");
+          // 检查源文件是否存在
+          if (File(sourceApkPath).existsSync()) {
+            Build.copyFile(sourceApkPath, destApkPath);
+            print("已生成 APK: $destApkPath");
+          } else {
+            print("警告: 未找到 $archDisplayName 架构的APK文件: $sourceApkPath");
+          }
         }
+        return;
+      case Target.ios:
+        // 执行本地构建脚本 ios_build.sh
+        await Build.exec(
+          name: "build ios",
+          Build.getExecutable(
+            "bash ios_build.sh",
+          ),
+        );
         return;
       case Target.macos:
         await _getMacosDependencies();
@@ -461,18 +476,18 @@ class BuildCommand extends Command {
 
         // 构建完成后，查找并重命名 DMG 文件
         final appVersion = await Build.getAppVersion();
-        
+
         // 查找DMG 文件
         print("正在搜索 DMG 文件...");
         bool found = false;
-        
+
         // 检查版本目录
         final versionDir = Directory(join(Build.distPath, appVersion));
         if (versionDir.existsSync()) {
           final files = versionDir.listSync();
           for (final entity in files) {
-            if (entity is File && 
-                entity.path.endsWith('.dmg') && 
+            if (entity is File &&
+                entity.path.endsWith('.dmg') &&
                 entity.path.contains(appVersion)) {
               print("在版本目录中找到 DMG 文件: ${entity.path}");
               try {
@@ -489,7 +504,7 @@ class BuildCommand extends Command {
             }
           }
         }
-        
+
         if (!found) {
           print("警告: 未找到任何 DMG 文件，请检查 fastforge 的输出路径");
         }
@@ -501,6 +516,7 @@ class BuildCommand extends Command {
 main(args) async {
   final runner = CommandRunner("setup", "build Application");
   runner.addCommand(BuildCommand(target: Target.android));
+  runner.addCommand(BuildCommand(target: Target.ios));
   runner.addCommand(BuildCommand(target: Target.linux));
   runner.addCommand(BuildCommand(target: Target.windows));
   runner.addCommand(BuildCommand(target: Target.macos));

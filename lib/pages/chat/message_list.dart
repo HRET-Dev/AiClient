@@ -1,6 +1,8 @@
 import 'package:ai_client/common/utils/message_markdown.dart';
 import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/models/chat_message.dart';
+import 'package:ai_client/pages/chat/chat_provider.dart';
+import 'package:ai_client/pages/chat/message_action_buttons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,11 +10,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 class MessageList extends StatelessWidget {
   final List<ChatMessage> messages;
   final ScrollController scrollController;
+  // 聊天提供者
+  final ChatProvider chatProvider;
 
   const MessageList({
     super.key,
     required this.messages,
     required this.scrollController,
+    required this.chatProvider,
   });
 
   /// 根据模型名称获取对应的图标
@@ -200,6 +205,19 @@ class MessageList extends StatelessWidget {
 
                 // markdown渲染消息内容
                 MessageMarkdown(content: message.content),
+
+                // 消息操作按钮
+                MessageActionButtons(
+                  messageRole: message.role,
+                  onDelete: () {
+                    // 处理删除消息的逻辑
+                    chatProvider.deleteMessage(message.id);
+                  },
+                  onRegenerate: () {
+                    // 处理重新生成消息的逻辑
+                    chatProvider.regenerateMessage(message.id);
+                  },
+                ),
               ],
             ),
           ),
@@ -291,6 +309,19 @@ class MessageList extends StatelessWidget {
 
                 // markdown渲染消息内容
                 MessageMarkdown(content: message.content),
+
+                // 消息操作按钮
+                MessageActionButtons(
+                  messageRole: message.role,
+                  onDelete: () {
+                    // 处理删除消息的逻辑
+                    chatProvider.deleteMessage(message.id);
+                  },
+                  onRegenerate: () {
+                    // 处理重新生成消息的逻辑
+                    chatProvider.regenerateMessage(message.id);
+                  },
+                ),
               ],
             ),
           ),

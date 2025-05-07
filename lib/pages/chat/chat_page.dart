@@ -357,6 +357,7 @@ class ChatPageState extends State<ChatPage> {
                   child: MessageList(
                     messages: chatProvider.messages,
                     scrollController: chatProvider.scrollController,
+                    chatProvider: chatProvider,
                   ),
                 ),
               ),

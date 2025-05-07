@@ -35,9 +35,9 @@ class ChatProvider extends ChangeNotifier {
   final String currentSessionId = "currentSessionId";
 
   // 构造函数
-  ChatProvider() {
-    // 初始化数据源
-    appDatabase = AppDatabase();
+  ChatProvider({AppDatabase? database}) {
+    // 使用传入的数据库实例或创建新实例
+    appDatabase = database ?? AppDatabase();
     // 初始化 AiApi 服务类
     aiApiService = AiApiService(AiApiRepository(appDatabase));
     // 初始化聊天会话 服务类
@@ -538,6 +538,270 @@ class ChatProvider extends ChangeNotifier {
   void switchModel(String model) {
     currentModel = model;
     notifyListeners();
+  }
+
+  /// 删除指定消息
+  Future<void> deleteMessage(int messageId) async {
+    try {
+      // 查找消息在列表中的索引
+      final index = messages.indexWhere((msg) => msg.id == messageId);
+      if (index != -1) {
+        // 从数据库中删除消息
+        await chatMessageService.deleteMessage(messageId);
+
+        // 从列表中移除消息
+        messages.removeAt(index);
+        notifyListeners();
+      }
+    } catch (e) {
+      print('删除消息失败: $e');
+    }
+  }
+
+  /// 重新回答指定消息
+  Future<void> regenerateMessage(int messageId) async {
+    try {
+      // 查找消息在列表中的索引
+      final index = messages.indexWhere((msg) => msg.id == messageId);
+      if (index != -1 && index > 0) {
+        // 获取用户的上一条消息
+        final userMessage = messages[index - 1];
+
+        // 删除当前的AI回复
+        await chatMessageService.deleteMessage(messageId);
+        messages.removeAt(index);
+
+        // 重新生成回答，但不添加新的用户消息
+        await regenerateAnswer(userMessage.content.toString());
+      }
+    } catch (e) {
+      print('重新回答消息失败: $e');
+    }
+  }
+
+  /// 重新生成回答（不添加新的用户消息）
+  Future<void> regenerateAnswer(String userMessageContent) async {
+    // 判断是否正在等待回复
+    if (isWaitingResponse) return;
+
+    // 判断是否有可用 API 配置信息
+    if (apiConfigs.isEmpty) {
+      return;
+    }
+
+    // 当前没有 API 配置信息时，默认使用第一条
+    currentApi ??= apiConfigs[0];
+
+    // 加载模型列表
+    models = currentApi!.models.split(',');
+
+    // 当前没有模型时，默认使用第一条
+    if (currentModel.isEmpty) {
+      currentModel = models.isNotEmpty ? models[0] : "";
+    }
+
+    // 存储一个新的消息列表 防止历史消息被覆盖
+    List<ChatMessage> newMessages = List.from(messages);
+
+    isWaitingResponse = true; // 设置等待状态
+    notifyListeners();
+
+    // 滚动到最底部
+    scrollToBottom();
+
+    // 默认加载中
+    var aiMessage = ChatMessage(
+        id: 0,
+        sessionId: chatSessionId,
+        content: LocaleKeys.chatPageThinking.tr(),
+        model: currentModel,
+        type: MessageType.system,
+        role: MessageRole.assistant,
+        createdTime: DateTime.now(),
+        status: MessageStatus.send);
+    messages.add(aiMessage);
+    notifyListeners();
+
+    // 记录AI消息在消息列表中的索引
+    final aiMessageIndex = messages.length - 1;
+
+    try {
+      if (useStream) {
+        // 流式请求处理
+        final responseStream = await chatHttp.sendStreamChatRequest(
+            api: currentApi!,
+            model: currentModel,
+            message: userMessageContent,
+            historys: newMessages);
+
+        // ... 以下代码与sendMessage方法中的流处理部分相同 ...
+        // 用于累积AI回复的内容
+        String accumulatedContent = "";
+
+        // 处理流
+        responseStream.listen((content) {
+          // 累积内容
+          accumulatedContent += content;
+
+          // 更新消息内容
+          aiMessage = aiMessage.copyWith(
+              content: accumulatedContent, status: MessageStatus.sent);
+
+          // 直接使用索引更新messages列表
+          if (aiMessageIndex < messages.length) {
+            messages[aiMessageIndex] = aiMessage;
+          }
+          notifyListeners();
+
+          // 滚动到最底部
+          scrollToBottom();
+        }, onDone: () {
+          // 流结束时的处理
+          isWaitingResponse = false; // 清除等待状态
+          notifyListeners();
+
+          // 滚动到最底部
+          scrollToBottom();
+
+          // 保存聊天记录
+          saveChat();
+        }, onError: (error) {
+          // ... 错误处理代码与sendMessage方法相同 ...
+          // 封装错误信息
+          String errorMessage = '请求出错';
+
+          // 判断错误类型
+          if (error is DioException && error.response != null) {
+            // 格式化错误信息，使其更易读
+            try {
+              // 尝试解析JSON格式的错误信息
+              var errorData = error.response!.data;
+              if (errorData is Map) {
+                // 将Map格式的错误信息转换为格式化的JSON字符串
+                var prettyError =
+                    const JsonEncoder.withIndent('  ').convert(errorData);
+                errorMessage =
+                    '请求出错: 状态码 ${error.response!.statusCode}\n$prettyError';
+              } else {
+                errorMessage =
+                    '请求出错: 状态码 ${error.response!.statusCode} - ${error.response!.data}';
+              }
+            } catch (_) {
+              // 如果解析失败，使用原始错误信息
+              errorMessage =
+                  '请求出错: 状态码 ${error.response!.statusCode} - ${error.response!.data}';
+            }
+          } else {
+            errorMessage = '请求出错: $error';
+          }
+
+          // 错误的markdown代码块
+          String errorMarkdown = '''
+            ```error
+            $errorMessage
+            ```
+          ''';
+
+          // 错误处理
+          aiMessage = aiMessage.copyWith(
+              content: errorMarkdown, status: MessageStatus.error);
+
+          // 直接使用索引更新messages列表
+          if (aiMessageIndex < messages.length) {
+            messages[aiMessageIndex] = aiMessage;
+          }
+
+          isWaitingResponse = false; // 清除等待状态
+          notifyListeners();
+
+          // 滚动到最底部
+          scrollToBottom();
+        });
+      } else {
+        // 非流式请求处理
+        final response = await chatHttp.sendChatRequest(
+            api: currentApi!,
+            model: currentModel,
+            message: userMessageContent,
+            historys: newMessages);
+
+        // 从响应中提取内容
+        final content =
+            response.data['choices'][0]['message']['content'] as String;
+
+        // 更新消息内容
+        aiMessage =
+            aiMessage.copyWith(content: content, status: MessageStatus.sent);
+
+        // 直接使用索引更新messages列表
+        if (aiMessageIndex < messages.length) {
+          messages[aiMessageIndex] = aiMessage;
+        }
+
+        isWaitingResponse = false; // 清除等待状态
+        notifyListeners();
+
+        // 滚动到最底部
+        scrollToBottom();
+
+        // 保存聊天记录
+        saveChat();
+      }
+    } catch (e) {
+      // ... 错误处理代码与sendMessage方法相同 ...
+      // 控制台打印错误信息
+      print('请求出错: $e');
+      // 出错时，显示错误信息
+      String errorMessage = '请求出错';
+      // 判断错误类型
+      if (e is DioException && e.response != null) {
+        // 格式化错误信息，使其更易读
+        try {
+          // 尝试解析JSON格式的错误信息
+          var errorData = e.response!.data;
+          if (errorData is Map) {
+            // 将Map格式的错误信息转换为格式化的JSON字符串
+            var prettyError =
+                const JsonEncoder.withIndent('  ').convert(errorData);
+            errorMessage = '请求出错: 状态码 ${e.response!.statusCode}\n$prettyError';
+          } else {
+            errorMessage =
+                '请求出错: 状态码 ${e.response!.statusCode} - ${e.response!.data}';
+          }
+        } catch (_) {
+          // 如果解析失败，使用原始错误信息
+          errorMessage =
+              '请求出错: 状态码 ${e.response!.statusCode} - ${e.response!.data}';
+        }
+      } else {
+        errorMessage = '请求出错: $e';
+      }
+
+      // 错误的markdown代码块
+      String errorMarkdown = '''
+        ```error
+        $errorMessage
+        ```
+      ''';
+
+      // 直接使用之前保存的索引更新消息
+      if (aiMessageIndex < messages.length) {
+        messages[aiMessageIndex] = ChatMessage(
+            id: 0,
+            sessionId: chatSessionId,
+            content: errorMarkdown,
+            model: currentModel,
+            type: MessageType.system,
+            role: MessageRole.assistant,
+            createdTime: DateTime.now(),
+            status: MessageStatus.error);
+      }
+      isWaitingResponse = false; // 清除等待状态
+      notifyListeners();
+
+      // 保存聊天记录
+      saveChat();
+    }
   }
 
   @override

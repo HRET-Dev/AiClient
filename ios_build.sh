@@ -24,5 +24,5 @@ mkdir -p Payload
 mkdir -p dist
 mv ./build/ios/iphoneos/Runner.app Payload
 zip -r -y Payload.zip Payload/Runner.app
-mv Payload.zip ./dist/${NAME}-v${VERSION}.ipa
+mv Payload.zip ./dist/${VERSION}/${NAME}-v${VERSION}.ipa
 rm -Rf Payload
