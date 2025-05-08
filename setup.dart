@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart';
 
+/// 支持的目标平台
 enum Target {
   windows,
   linux,
@@ -15,6 +16,7 @@ enum Target {
 }
 
 extension TargetExt on Target {
+  /// 获取操作系统名称
   String get os {
     if (this == Target.macos) {
       return "darwin";
@@ -22,6 +24,7 @@ extension TargetExt on Target {
     return name;
   }
 
+  /// 检查当前运行平台是否与目标平台相同
   bool get same {
     if (this == Target.android) {
       return true;
@@ -38,6 +41,7 @@ extension TargetExt on Target {
     return false;
   }
 
+  /// 获取动态库扩展名
   String get dynamicLibExtensionName {
     final String extensionName;
     switch (this) {
@@ -57,6 +61,7 @@ extension TargetExt on Target {
     return extensionName;
   }
 
+  /// 获取可执行文件扩展名
   String get executableExtensionName {
     final String extensionName;
     switch (this) {
@@ -71,8 +76,10 @@ extension TargetExt on Target {
   }
 }
 
+/// 支持的架构类型
 enum Arch { amd64, arm64, arm }
 
+/// 构建项配置
 class BuildItem {
   Target target;
   Arch? arch;
@@ -86,11 +93,13 @@ class BuildItem {
 
   @override
   String toString() {
-    return 'BuildLibItem{target: $target, arch: $arch, archName: $archName}';
+    return 'BuildItem{target: $target, arch: $arch, archName: $archName}';
   }
 }
 
+/// 构建工具类
 class Build {
+  /// 所有支持的构建项配置
   static List<BuildItem> get buildItems => [
         BuildItem(
           target: Target.macos,
@@ -128,10 +137,13 @@ class Build {
         ),
       ];
 
+  /// 应用名称
   static String get appName => "AiClient";
 
+  /// 输出目录路径
   static String get distPath => join(current, "dist");
 
+  /// 执行命令
   static Future<void> exec(
     List<String> executable, {
     String? name,
@@ -139,62 +151,76 @@ class Build {
     String? workingDirectory,
     bool runInShell = true,
   }) async {
-    if (name != null) print("run $name");
-    final process = await Process.start(
-      executable[0],
-      executable.sublist(1),
-      environment: environment,
-      workingDirectory: workingDirectory,
-      runInShell: runInShell,
-    );
-    process.stdout.listen((data) {
-      print(utf8.decode(data));
-    });
-    process.stderr.listen((data) {
-      print(utf8.decode(data));
-    });
-    final exitCode = await process.exitCode;
-    if (exitCode != 0 && name != null) throw "$name error";
+    if (name != null) print("执行命令: $name");
+    try {
+      final process = await Process.start(
+        executable[0],
+        executable.sublist(1),
+        environment: environment,
+        workingDirectory: workingDirectory,
+        runInShell: runInShell,
+      );
+      
+      process.stdout.listen((data) {
+        print(utf8.decode(data));
+      });
+      
+      process.stderr.listen((data) {
+        print(utf8.decode(data));
+      });
+      
+      final exitCode = await process.exitCode;
+      if (exitCode != 0 && name != null) {
+        throw "命令执行失败: $name (退出码: $exitCode)";
+      }
+    } catch (e) {
+      print("命令执行异常: $e");
+      if (name != null) throw "命令 '$name' 执行失败: $e";
+      rethrow;
+    }
   }
 
+  /// 将命令字符串转换为可执行列表
   static List<String> getExecutable(String command) {
-    print(command);
+    print("命令: $command");
     return command.split(" ");
   }
 
-  static getFastforge() async {
+  /// 安装或检查 fastforge 工具
+  static Future<void> getFastforge() async {
     try {
       // 检查 fastforge 是否已经安装
       final result = await Process.run('fastforge', ['--version']);
       if (result.exitCode != 0) {
         // 如果没有安装，执行安装命令
-        print("fastforge未安装或版本检查失败,开始安装...");
+        print("fastforge未安装或版本检查失败，开始安装...");
         await exec(
-          name: "get fastforge",
-          Build.getExecutable("dart pub global activate fastforge"),
+          name: "安装 fastforge",
+          getExecutable("dart pub global activate fastforge"),
         );
 
         // 验证安装是否成功
         final verifyResult = await Process.run('fastforge', ['--version']);
         if (verifyResult.exitCode != 0) {
-          throw "fastforge安装失败,请确保Dart SDK已正确安装并添加到PATH中";
+          throw "fastforge安装失败，请确保Dart SDK已正确安装并添加到PATH中";
         }
+        print("fastforge安装成功，版本: ${verifyResult.stdout.toString().trim()}");
       } else {
-        print("fastforge 已安装，跳过安装步骤");
+        print("fastforge 已安装，版本: ${result.stdout.toString().trim()}");
       }
     } catch (e) {
       // 处理ProcessException，这通常意味着命令不存在
       if (e is ProcessException) {
-        print("fastforge命令不存在,尝试安装...");
+        print("fastforge命令不存在，尝试安装...");
         try {
           await exec(
-            name: "get fastforge",
-            Build.getExecutable("dart pub global activate fastforge"),
+            name: "安装 fastforge",
+            getExecutable("dart pub global activate fastforge"),
           );
           print("fastforge安装成功");
         } catch (installError) {
           print("安装fastforge失败: $installError");
-          throw "无法安装fastforge,请确保Dart SDK已正确安装并添加到PATH中";
+          throw "无法安装fastforge，请确保Dart SDK已正确安装并添加到PATH中";
         }
       } else {
         print("获取fastforge时出错: $e");
@@ -203,12 +229,13 @@ class Build {
     }
   }
 
+  /// 获取应用版本号
   static Future<String> getAppVersion() async {
     try {
       // 读取pubspec.yaml文件获取版本号
       final pubspecFile = File(join(current, 'pubspec.yaml'));
       if (!pubspecFile.existsSync()) {
-        print("警告: 未找到pubspec.yaml文件,使用默认版本号0.0.1");
+        print("警告: 未找到pubspec.yaml文件，使用默认版本号0.0.1");
         return "0.0.1";
       }
 
@@ -217,36 +244,44 @@ class Build {
       final match = versionRegex.firstMatch(content);
 
       if (match != null && match.groupCount >= 1) {
-        return match.group(1)!;
+        final version = match.group(1)!;
+        print("从pubspec.yaml获取到版本号: $version");
+        return version;
       } else {
-        print("警告: 在pubspec.yaml中未找到版本号,使用默认版本号0.0.1");
+        print("警告: 在pubspec.yaml中未找到版本号，使用默认版本号0.0.1");
         return "0.0.1";
       }
     } catch (e) {
-      print("获取版本号时出错: $e,使用默认版本号0.0.1");
+      print("获取版本号时出错: $e，使用默认版本号0.0.1");
       return "0.0.1";
     }
   }
 
-  static copyFile(String sourceFilePath, String destinationFilePath) {
+  /// 复制文件
+  static void copyFile(String sourceFilePath, String destinationFilePath) {
     final sourceFile = File(sourceFilePath);
     if (!sourceFile.existsSync()) {
-      throw "SourceFilePath不存在";
+      throw "源文件不存在: $sourceFilePath";
     }
+    
     final destinationFile = File(destinationFilePath);
     final destinationDirectory = destinationFile.parent;
     if (!destinationDirectory.existsSync()) {
       destinationDirectory.createSync(recursive: true);
+      print("创建目标目录: ${destinationDirectory.path}");
     }
+    
     try {
       sourceFile.copySync(destinationFilePath);
-      print("文件复制成功！");
+      print("文件复制成功: $sourceFilePath -> $destinationFilePath");
     } catch (e) {
       print("文件复制失败: $e");
+      throw "复制文件失败: $sourceFilePath -> $destinationFilePath: $e";
     }
   }
 }
 
+/// 构建命令类
 class BuildCommand extends Command {
   Target target;
 
@@ -257,28 +292,30 @@ class BuildCommand extends Command {
       argParser.addOption(
         "arch",
         valueHelp: arches.map((e) => e.name).join(','),
-        help: 'The $name build desc',
+        help: '指定 $name 构建的架构',
       );
     } else {
       argParser.addOption(
         "arch",
-        help: 'The $name build archName',
+        help: '指定 $name 构建的架构名称',
       );
     }
   }
 
   @override
-  String get description => "build $name application";
+  String get description => "构建 $name 应用";
 
   @override
   String get name => target.name;
 
+  /// 获取目标平台支持的架构列表
   List<Arch> get arches => Build.buildItems
       .where((element) => element.target == target && element.arch != null)
       .map((e) => e.arch!)
       .toList();
 
-  _getLinuxDependencies(Arch arch) async {
+  /// 安装Linux构建依赖
+  Future<void> _getLinuxDependencies(Arch arch) async {
     // 更新软件包列表
     await Build.exec(
       Build.getExecutable("sudo apt update -y"),
@@ -302,6 +339,7 @@ class BuildCommand extends Command {
     await Build.exec(
       Build.getExecutable("sudo apt install -y locate"),
     );
+    
     if (arch == Arch.amd64) {
       await Build.exec(
         Build.getExecutable("sudo apt install -y rpm patchelf"),
@@ -309,6 +347,7 @@ class BuildCommand extends Command {
       await Build.exec(
         Build.getExecutable("sudo apt install -y libfuse2"),
       );
+      
       final downloadName = arch == Arch.amd64 ? "x86_64" : "aarch_64";
       await Build.exec(
         Build.getExecutable(
@@ -321,6 +360,7 @@ class BuildCommand extends Command {
         ),
       );
     }
+    
     await Build.exec(
       Build.getExecutable(
         "sudo mv appimagetool /usr/local/bin/",
@@ -328,13 +368,15 @@ class BuildCommand extends Command {
     );
   }
 
-  _getMacosDependencies() async {
+  /// 安装macOS构建依赖
+  Future<void> _getMacosDependencies() async {
     await Build.exec(
       Build.getExecutable("npm install -g appdmg"),
     );
   }
 
-  _buildFastforge({
+  /// 使用fastforge构建应用
+  Future<void> _buildFastforge({
     required Target target,
     required String targets,
     String args = '',
@@ -353,6 +395,7 @@ class BuildCommand extends Command {
     );
   }
 
+  /// 获取系统架构
   Future<String?> get systemArch async {
     if (Platform.isWindows) {
       return Platform.environment["PROCESSOR_ARCHITECTURE"];
@@ -370,13 +413,13 @@ class BuildCommand extends Command {
         arches.where((element) => element.name == archName).toList();
     final arch = currentArches.isEmpty ? null : currentArches.first;
 
-    print(target);
+    print("目标平台: $target");
 
     if (arch == null &&
         target != Target.android &&
         target != Target.ios &&
         target != Target.macos) {
-      throw "无效的架构参数";
+      throw "无效的架构参数，请指定有效的架构";
     }
 
     // 获取应用版本号
@@ -385,10 +428,11 @@ class BuildCommand extends Command {
 
     switch (target) {
       case Target.windows:
+       final archStr = archName != null ? "-$archName" : "";
         _buildFastforge(
           target: target,
           targets: "exe,zip",
-          args: "--description $archName",
+          args: "--artifact-name=${Build.appName}-$appVersion$archStr",
         );
         return;
       case Target.linux:
@@ -427,12 +471,13 @@ class BuildCommand extends Command {
         final outputDir = Directory(versionDistPath);
         if (!outputDir.existsSync()) {
           outputDir.createSync(recursive: true);
+          print("创建输出目录: $versionDistPath");
         }
 
         // 使用一次性命令构建所有目标架构的APK
         print("开始构建所有目标架构的Android APK");
         await Build.exec(
-          name: "build android split-per-abi",
+          name: "构建Android APK",
           Build.getExecutable(
             "flutter build apk --split-per-abi",
           ),
@@ -461,7 +506,7 @@ class BuildCommand extends Command {
       case Target.ios:
         // 执行本地构建脚本 ios_build.sh
         await Build.exec(
-          name: "build ios",
+          name: "构建iOS应用",
           Build.getExecutable(
             "bash ios_build.sh",
           ),
@@ -513,12 +558,18 @@ class BuildCommand extends Command {
   }
 }
 
-main(args) async {
-  final runner = CommandRunner("setup", "build Application");
-  runner.addCommand(BuildCommand(target: Target.android));
-  runner.addCommand(BuildCommand(target: Target.ios));
-  runner.addCommand(BuildCommand(target: Target.linux));
-  runner.addCommand(BuildCommand(target: Target.windows));
-  runner.addCommand(BuildCommand(target: Target.macos));
-  runner.run(args);
+/// 主函数
+Future<void> main(List<String> args) async {
+  try {
+    final runner = CommandRunner("setup", "构建应用程序");
+    runner.addCommand(BuildCommand(target: Target.android));
+    runner.addCommand(BuildCommand(target: Target.ios));
+    runner.addCommand(BuildCommand(target: Target.linux));
+    runner.addCommand(BuildCommand(target: Target.windows));
+    runner.addCommand(BuildCommand(target: Target.macos));
+    await runner.run(args);
+  } catch (e) {
+    print("构建失败: $e");
+    exit(1);
+  }
 }
