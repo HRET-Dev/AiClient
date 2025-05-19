@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:ai_client/pages/chat/chat_provider.dart';
 import 'package:ai_client/pages/home_page.dart';
+import 'package:bot_toast/bot_toast.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -66,10 +67,20 @@ class App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
-        // 配置Easy_Localization
+        // 初始化 BotToast, 用于全局提示
+        builder: BotToastInit(),
+        // 路由监听器
+        navigatorObservers: [
+          // BotToast路由观察者
+          BotToastNavigatorObserver(),
+        ],
+
+        // 多语言 配置Easy_Localization
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
+
+        // 主题
         // 明亮主题
         theme: ThemeData(
             useMaterial3: true,

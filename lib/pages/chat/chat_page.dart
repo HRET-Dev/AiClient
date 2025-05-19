@@ -1,3 +1,4 @@
+import 'package:ai_client/common/toast.dart';
 import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/locale_keys.dart';
 import 'package:ai_client/pages/chat/chat_provider.dart';
@@ -47,29 +48,6 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  /// 显示通用提示弹窗
-  void _showAlertDialog(String title, String content) {
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              child: Text(tr(LocaleKeys.confirm)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   /// 聊天页信息设置弹窗
   void _showSettingsDialog() async {
     // 重新加载API配置并等待完成
@@ -80,7 +58,7 @@ class ChatPageState extends State<ChatPage> {
 
     // 如果API配置为空，提示用户
     if (_chatProvider.apiConfigs.isEmpty) {
-      _showAlertDialog('提示', '无可用 API 配置信息');
+      Toast.showError('无可用 API 配置信息');
       return;
     }
 
