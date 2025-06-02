@@ -33,6 +33,7 @@ dependencies:
   shared_preferences: ^2.5.3
   window_manager: ^0.4.3
   bot_toast: ^4.1.3
+  font_awesome_flutter: ^10.8.0
 
 dev_dependencies:
   flutter_test:

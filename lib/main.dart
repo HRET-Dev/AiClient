@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:ai_client/common/theme.dart';
 import 'package:ai_client/pages/chat/chat_provider.dart';
 import 'package:ai_client/pages/home_page.dart';
 import 'package:bot_toast/bot_toast.dart';
@@ -82,16 +83,9 @@ class App extends StatelessWidget {
 
         // 主题
         // 明亮主题
-        theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color.fromARGB(255, 171, 194, 235))),
+        theme: AppThemes.lightTheme,
         // 黑暗主题
-        darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color.fromARGB(255, 17, 95, 230),
-                brightness: Brightness.dark)),
+        darkTheme: AppThemes.darkTheme,
         // 主题模式
         themeMode: ThemeMode.system,
         home: HomePage(),
