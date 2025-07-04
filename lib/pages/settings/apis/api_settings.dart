@@ -1,6 +1,6 @@
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/default_api_configs.dart';
 import 'package:ai_client/generated/locale_keys.dart';
+import 'package:ai_client/models/ai_api.dart';
 import 'package:ai_client/pages/settings/apis/api_info.dart';
 import 'package:ai_client/pages/settings/apis/api_list.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -28,9 +28,6 @@ class ApiSettings extends StatefulWidget {
 }
 
 class _ApiSettings extends State<ApiSettings> {
-  // 获取 AppDatabase 实例
-  final AppDatabase appDatabase = AppDatabase();
-
   /// 添加按钮
   Widget _addButton() {
     return IconButton(
@@ -46,19 +43,15 @@ class _ApiSettings extends State<ApiSettings> {
         final result = await showDialog(
           context: context,
           builder: (context) => ApiInfo(
-            aiApi: AiApiData(
-              id: 0,
-              provider: defaultProvider,
-              serviceName: '',
-              baseUrl: '',
-              apiKey: '',
-              models: '',
-              createdTime: DateTime.now(),
-              isActive: true,
-              updatedTime: DateTime.now(),
-            ),
-            appDatabase: appDatabase,
-          ),
+              aiApi: AiApi()
+                ..provider = defaultProvider
+                ..serviceName = ''
+                ..baseUrl = ''
+                ..apiKey = ''
+                ..models = ''
+                ..createTime = DateTime.now()
+                ..isActive = true
+                ..updateTime = DateTime.now()),
         );
 
         // 如果保存成功，刷新列表
@@ -89,7 +82,7 @@ class _ApiSettings extends State<ApiSettings> {
         child: Column(
           children: [
             Expanded(
-              child: ApiList(key: UniqueKey(), appDatabase: appDatabase),
+              child: ApiList(key: UniqueKey()),
             ),
           ],
         ),

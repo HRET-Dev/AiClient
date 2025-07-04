@@ -1,7 +1,6 @@
 import 'dart:async';
-
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/default_api_configs.dart';
+import 'package:ai_client/models/ai_api.dart';
 import 'package:ai_client/models/chat_message.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
@@ -15,6 +14,9 @@ class ChatHttp {
     // 设置请求头
     contentType: 'application/json; charset=utf-8',
   ));
+
+  // 用于取消请求的CancelToken
+  CancelToken? _cancelToken;
 
   ChatHttp();
 
@@ -50,7 +52,7 @@ class ChatHttp {
   /// [message]：用户发送的消息内容，会包装进 OpenAI 要求的请求体中
   /// [historys]：历史消息列表，用于上下文
   Future<Response> sendChatRequest({
-    required AiApiData api,
+    required AiApi api,
     required String model,
     required String message,
     List<ChatMessage>? historys,
@@ -115,7 +117,7 @@ class ChatHttp {
   /// [historys]：历史消息列表，用于上下文
   /// [useStream]：是否使用流式请求，默认为 true
   Future<dynamic> sendChatRequestAuto({
-    required AiApiData api,
+    required AiApi api,
     required String model,
     required String message,
     List<ChatMessage>? historys,
@@ -140,10 +142,11 @@ class ChatHttp {
   }
 
   Future<Stream<String>> sendStreamChatRequest({
-    required AiApiData api,
+    required AiApi api,
     required String model,
     required String message,
     List<ChatMessage>? historys,
+    CancelToken? cancelToken,
   }) async {
     // 检查 baseUrl 是否存在
     if (api.baseUrl.isEmpty) {
@@ -183,10 +186,14 @@ class ChatHttp {
     };
 
     try {
+      // 创建或使用传入的CancelToken
+      _cancelToken = cancelToken ?? CancelToken();
+
       // 尝试发送流式请求
       final response = await dio.post(
         baseUrl,
         data: requestBody,
+        cancelToken: _cancelToken,
         options: Options(
           responseType: ResponseType.stream, // 设置响应类型为流
         ),
@@ -246,4 +253,15 @@ class ChatHttp {
       return Stream.error('请求失败: $e');
     }
   }
+
+  /// 取消当前的流式请求
+  void cancelCurrentRequest() {
+    if (_cancelToken != null && !_cancelToken!.isCancelled) {
+      _cancelToken!.cancel('用户取消请求');
+    }
+  }
+
+  /// 检查当前是否有正在进行的请求
+  bool get hasActiveRequest =>
+      _cancelToken != null && !_cancelToken!.isCancelled;
 }

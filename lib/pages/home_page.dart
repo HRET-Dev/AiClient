@@ -1,5 +1,5 @@
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/locale_keys.dart';
+import 'package:ai_client/models/chat_session.dart';
 import 'package:ai_client/pages/chat/chat_page.dart';
 import 'package:ai_client/pages/chat/chat_provider.dart';
 import 'package:ai_client/pages/history/history_list.dart';
@@ -7,6 +7,7 @@ import 'package:ai_client/pages/settings/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -220,20 +221,14 @@ class HomePageState extends State<HomePage> {
           Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: ElevatedButton.icon(
+            child: ShadButton(
               onPressed: () {
                 // 切换到聊天页面
                 homeProvider.setSelectedIndex(0);
                 chatProvider.clearChat();
               },
-              icon: Icon(Icons.add),
-              label: Text(tr(LocaleKeys.chatPageNewChat)),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 44),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+              leading: Icon(Icons.add),
+              child: Text(LocaleKeys.chatPageNewChat).tr(),
             ),
           ),
           // 导航选项
@@ -361,18 +356,20 @@ class HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.edit, size: 16),
+          ShadIconButton.ghost(
+            icon: const Icon(Icons.edit, size: 16),
             onPressed: () {
               chatPageKey.currentState?.showSettingsDialog();
             },
           ),
-          IconButton(
-            icon: Icon(Icons.add, size: 18),
-            onPressed: () {
-              chatProvider.clearChat();
-            },
-            tooltip: tr(LocaleKeys.chatPageNewChat),
+          ShadTooltip(
+            builder: (context) => const Text(LocaleKeys.chatPageNewChat).tr(),
+            child: ShadIconButton.ghost(
+              icon: Icon(Icons.add, size: 18),
+              onPressed: () {
+                chatProvider.clearChat();
+              },
+            ),
           ),
         ],
       ),
@@ -547,7 +544,7 @@ class HomePageState extends State<HomePage> {
                                 ),
                               ),
                               subtitle: Text(
-                                dateFormat.format(chatSession.updatedTime),
+                                dateFormat.format(chatSession.updateTime),
                                 style: TextStyle(fontSize: 12),
                               ),
                               // 当前会话使用不同的背景色

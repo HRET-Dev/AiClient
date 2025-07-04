@@ -1,8 +1,7 @@
 import 'dart:math';
 
-import 'package:ai_client/database/app_database.dart';
-import 'package:drift/drift.dart';
 import 'dart:convert';
+import 'package:ai_client/models/ai_api.dart';
 import 'package:crypto/crypto.dart';
 
 /// API 配置类
@@ -97,18 +96,17 @@ class DefaultApiConfigs {
   }
 
   /// 默认模型配置 API 配置列表
-  static List<AiApiCompanion> defaultApiConfig() {
+  static List<AiApi> defaultApiConfig() {
     return [
-      AiApiCompanion(
-        serviceName: const Value('默认配置'),
-        provider: const Value('OpenAI'),
-        baseUrl: const Value('https://free.zeroai.chat'),
-        apiKey: Value(_generateRandomString(32)),
-        models: const Value('gpt-4o'),
-        isActive: const Value(true),
-        createdTime: Value(DateTime.now()),
-        updatedTime: Value(DateTime.now()),
-      ),
+      AiApi()
+        ..serviceName = '默认配置'
+        ..provider = 'OpenAI'
+        ..baseUrl = 'https://free.zeroai.chat'
+        ..apiKey = _generateRandomString(32)
+        ..models = 'gpt-4o'
+        ..isActive = true
+        ..createTime = DateTime.now()
+        ..updateTime = DateTime.now(),
     ];
   }
 
@@ -209,7 +207,7 @@ class DefaultApiConfigs {
   ///
   /// [apiConfig] API配置对象
   /// 返回加密后的字符串
-  static String encryptApiConfig(AiApiData apiConfig) {
+  static String encryptApiConfig(AiApi apiConfig) {
     // 创建一个包含必要信息的Map
     final configMap = {
       'serviceName': apiConfig.serviceName,
@@ -236,7 +234,7 @@ class DefaultApiConfigs {
   ///
   /// [encryptedString] 加密后的配置字符串
   /// 返回解密后的API配置对象，如果解密失败返回null
-  static AiApiCompanion? decryptApiConfig(String encryptedString) {
+  static AiApi? decryptApiConfig(String encryptedString) {
     try {
       // 验证前缀
       if (!encryptedString.startsWith('AICFG_')) {
@@ -259,16 +257,15 @@ class DefaultApiConfigs {
       final configMap = jsonDecode(jsonString) as Map<String, dynamic>;
 
       // 创建API配置对象
-      return AiApiCompanion(
-        serviceName: Value(configMap['serviceName'] as String),
-        provider: Value(configMap['provider'] as String),
-        baseUrl: Value(configMap['baseUrl'] as String),
-        apiKey: Value(configMap['apiKey'] as String),
-        models: Value(configMap['models'] as String),
-        isActive: const Value(true),
-        createdTime: Value(DateTime.now()),
-        updatedTime: Value(DateTime.now()),
-      );
+      return AiApi()
+        ..serviceName = configMap['serviceName'] as String
+        ..provider = configMap['provider'] as String
+        ..baseUrl = configMap['baseUrl'] as String
+        ..apiKey = configMap['apiKey'] as String
+        ..models = configMap['models'] as String
+        ..isActive = true
+        ..createTime = DateTime.now()
+        ..updateTime = DateTime.now();
     } catch (e) {
       print('解密API配置失败: $e');
       return null;

@@ -1,146 +1,107 @@
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/default_api_configs.dart';
+import 'package:ai_client/models/ai_api.dart';
 import 'package:ai_client/repositories/ai_api_repository.dart';
-import 'package:drift/drift.dart';
 import 'dart:developer' as developer;
 
 /// AiApi服务类
 class AiApiService {
-  // AiApiRepository实例
-  final AiApiRepository aiApiRepository;
+  final AiApiRepository _repository = AiApiRepository();
 
-  // 构造函数
-  AiApiService(this.aiApiRepository);
+  AiApiService();
 
-  /// 初始化AiApi默认配置
-  /// 返回AI API列表
-  Future<List<AiApiData>> initDefaultAiApiConfig() async {
-    // 查询数据
-    var data = await getAllAiApis();
-    // 判断是否有数据
+  /// 初始化默认 API 配置，如果 Box 为空则写入默认数据并返回
+  Future<List<AiApi>> initDefaultAiApiConfig() async {
+    var data = _repository.getAllAiApis();
     if (data.isEmpty) {
-      // 获取默认配置信息
-      final defaultApiConfig = DefaultApiConfigs.defaultApiConfig();
-      // 添加默认数据到数据库
-      insertAiApis(defaultApiConfig);
-      // 重新查询数据
-      data = await getAllAiApis();
+      final defaults = DefaultApiConfigs.defaultApiConfig();
+      await _repository.insertAiApis(defaults);
+      data = _repository.getAllAiApis();
     }
-    // 返回数据
     return data;
   }
 
-  /// 获取所有AI API记录
-  /// 返回AI API列表
-  Future<List<AiApiData>> getAllAiApis() async {
+  /// 获取所有 AI API 记录
+  Future<List<AiApi>> getAllAiApis() async {
     try {
-      // 调用数据层方法获取所有API记录
-      return await aiApiRepository.getAllAiApis();
-    } catch (e, stackTrace) {
-      // 发生异常时记录错误日志并返回空列表
-      developer.log('获取所有AI API失败', error: e, stackTrace: stackTrace);
+      return _repository.getAllAiApis();
+    } catch (e, st) {
+      developer.log('获取所有 AI API 失败', error: e, stackTrace: st);
       return [];
     }
   }
 
-  /// 获取所有启用的AI API记录
-  /// 1:激活 0:未激活
-  Future<List<AiApiData>> getAllActiveAiApis() async {
+  /// 获取所有激活的 AI API 记录
+  Future<List<AiApi>> getAllActiveAiApis() async {
     try {
-      // 调用数据层方法获取所有激活状态的API记录
-      return await aiApiRepository.getAllActiveAiApis();
-    } catch (e, stackTrace) {
-      // 发生异常时记录错误日志并返回空列表
-      developer.log('获取所有启用的AI API失败', error: e, stackTrace: stackTrace);
+      return _repository.getAllActiveAiApis();
+    } catch (e, st) {
+      developer.log('获取激活的 AI API 失败', error: e, stackTrace: st);
       return [];
     }
   }
 
-  /// 根据ID获取AI API记录
-  /// [id] AI API记录ID
-  /// 返回AI API对象
-  Future<AiApiData?> getAiApiById(int id) async {
+  /// 根据 ID 获取 AI API
+  Future<AiApi?> getAiApiById(int id) async {
     try {
-      // 调用数据层方法根据ID查询API记录
-      return await aiApiRepository.getAiApiById(id);
-    } catch (e, stackTrace) {
-      // 发生异常时记录错误日志并返回null
-      developer.log('根据ID获取AI API失败: $id', error: e, stackTrace: stackTrace);
+      return _repository.getAiApiById(id);
+    } catch (e, st) {
+      developer.log('根据 ID 获取 AI API 失败: \$id', error: e, stackTrace: st);
       return null;
     }
   }
 
-  /// 插入AI API记录
-  /// [aiApi] AI API对象
-  Future<bool> insertAiApi(AiApiCompanion aiApi) async {
+  /// 插入单个 AI API
+  Future<bool> insertAiApi(AiApi api) async {
     try {
-      // 获取当前时间戳
       final now = DateTime.now();
-      // 设置创建时间和更新时间，并将id设置为null
-      aiApi = aiApi.copyWith(
-          id: const Value.absent(),
-          createdTime: Value(now),
-          updatedTime: Value(now));
-      // 调用数据层方法插入API记录
-      await aiApiRepository.insertAiApi(aiApi);
-      // 插入成功返回true
+      api
+        ..createTime = now
+        ..updateTime = now;
+      await _repository.insertAiApi(api);
       return true;
-    } catch (e, stackTrace) {
-      // 发生异常时记录错误日志并返回false
-      developer.log('插入AI API失败', error: e, stackTrace: stackTrace);
+    } catch (e, st) {
+      developer.log('插入 AI API 失败', error: e, stackTrace: st);
       return false;
     }
   }
 
-  /// 批量插入AI API记录
-  /// [aiApis] AI API列表
-  Future<bool> insertAiApis(List<AiApiCompanion> aiApis) async {
+  /// 批量插入 AI API
+  Future<bool> insertAiApis(List<AiApi> apis) async {
     try {
-      // 获取当前时间戳
       final now = DateTime.now();
-      // 为每条记录设置创建时间和更新时间
-      aiApis = aiApis.map((aiApi) {
-        return aiApi.copyWith(createdTime: Value(now), updatedTime: Value(now));
-      }).toList();
-      // 调用数据层方法批量插入API记录
-      await aiApiRepository.insertAiApis(aiApis);
-      // 插入成功返回true
+      for (var api in apis) {
+        api
+          ..createTime = now
+          ..updateTime = now;
+      }
+      await _repository.insertAiApis(apis);
       return true;
-    } catch (e, stackTrace) {
-      // 发生异常时记录错误日志并返回false
-      developer.log('批量插入AI API失败', error: e, stackTrace: stackTrace);
+    } catch (e, st) {
+      developer.log('批量插入 AI API 失败', error: e, stackTrace: st);
       return false;
     }
   }
 
-  /// 更新AI API记录
-  /// [aiApi] AI API对象
-  Future<bool> updateAiApi(AiApiCompanion aiApi) async {
+  /// 更新已有的 AI API
+  Future<bool> updateAiApi(AiApi api) async {
     try {
-      // 获取当前时间戳
-      final now = DateTime.now();
-      // 更新记录的更新时间
-      aiApi = aiApi.copyWith(updatedTime: Value(now));
-      // 调用数据层方法更新API记录
-      return await aiApiRepository.updateAiApi(aiApi);
-    } catch (e, stackTrace) {
-      // 发生异常时记录错误日志并返回false
-      developer.log('更新AI API失败', error: e, stackTrace: stackTrace);
+      api.updateTime = DateTime.now();
+      await _repository.updateAiApi(api);
+      return true;
+    } catch (e, st) {
+      developer.log('更新 AI API 失败', error: e, stackTrace: st);
       return false;
     }
   }
 
-  /// 根据ID删除AI API记录
-  /// [id] AI API记录ID
-  /// 返回删除的记录数，失败返回0
-  Future<int> deleteAiApiById(int id) async {
+  /// 删除 AI API
+  Future<bool> deleteAiApiById(int id) async {
     try {
-      // 调用数据层方法删除API记录
-      return await aiApiRepository.deleteAiApi(id);
-    } catch (e, stackTrace) {
-      // 发生异常时记录错误日志并返回0
-      developer.log('删除AI API失败: $id', error: e, stackTrace: stackTrace);
-      return 0;
+      await _repository.deleteAiApi(id);
+      return true;
+    } catch (e, st) {
+      developer.log('删除 AI API 失败: \$id', error: e, stackTrace: st);
+      return false;
     }
   }
 }

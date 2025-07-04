@@ -1,5 +1,4 @@
 import 'package:ai_client/common/utils/message_markdown.dart';
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/models/chat_message.dart';
 import 'package:ai_client/pages/chat/chat_provider.dart';
 import 'package:ai_client/pages/chat/message_action_buttons.dart';
@@ -183,7 +182,7 @@ class MessageList extends StatelessWidget {
                 ),
                 // 时间
                 Text(
-                  dateFormat.format(message.createdTime),
+                  dateFormat.format(message.createTime),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
@@ -277,7 +276,7 @@ class MessageList extends StatelessWidget {
                 ),
                 // 时间
                 Text(
-                  dateFormat.format(message.createdTime),
+                  dateFormat.format(message.createTime),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,

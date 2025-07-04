@@ -1,10 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:ai_client/common/utils/chat_http.dart';
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/default_api_configs.dart';
 import 'package:ai_client/generated/locale_keys.dart';
-import 'package:ai_client/repositories/ai_api_repository.dart';
+import 'package:ai_client/models/ai_api.dart';
 import 'package:ai_client/services/ai_api_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -14,15 +13,9 @@ import 'package:flutter/services.dart';
 /// 添加、修改、删除一体
 class ApiInfo extends StatefulWidget {
   // Api 信息实体
-  final AiApiData aiApi;
-  // 数据库实例
-  final AppDatabase appDatabase;
+  final AiApi aiApi;
 
-  const ApiInfo({
-    super.key,
-    required this.aiApi,
-    required this.appDatabase,
-  });
+  const ApiInfo({super.key, required this.aiApi});
 
   @override
   State<StatefulWidget> createState() => _ApiInfoState();
@@ -37,7 +30,7 @@ class _ApiInfoState extends State<ApiInfo> {
   final ChatHttp _chatHttp = ChatHttp();
 
   /// Api 信息实体
-  late AiApiData _aiApi;
+  late AiApi _aiApi;
 
   // 表单key
   final _formKey = GlobalKey<FormState>();
@@ -58,7 +51,7 @@ class _ApiInfoState extends State<ApiInfo> {
     // 初始化 AiApi 信息
     _aiApi = widget.aiApi;
     // 初始化 AiApi 服务类
-    _aiApiService = AiApiService(AiApiRepository(widget.appDatabase));
+    _aiApiService = AiApiService();
 
     // 初始化所有控制器
     _serviceNameController = TextEditingController(text: _aiApi.serviceName);
@@ -115,7 +108,7 @@ class _ApiInfoState extends State<ApiInfo> {
 
     try {
       // 更新模型列表
-      _aiApi = _aiApi.copyWith(models: _modelsController.text);
+      _aiApi.models = _modelsController.text;
 
       // 生成加密的配置字符串
       final configString = DefaultApiConfigs.encryptApiConfig(_aiApi);
@@ -180,19 +173,18 @@ class _ApiInfoState extends State<ApiInfo> {
 
       // 更新当前表单
       setState(() {
-        _aiApi = _aiApi.copyWith(
-          serviceName: apiConfig.serviceName.value,
-          provider: apiConfig.provider.value,
-          baseUrl: apiConfig.baseUrl.value,
-          apiKey: apiConfig.apiKey.value,
-          models: apiConfig.models.value,
-        );
+        _aiApi
+          ..serviceName = apiConfig.serviceName
+          ..provider = apiConfig.provider
+          ..baseUrl = apiConfig.baseUrl
+          ..apiKey = apiConfig.apiKey
+          ..models = apiConfig.models;
 
         // 更新所有控制器文本
-        _serviceNameController.text = apiConfig.serviceName.value;
-        _baseUrlController.text = apiConfig.baseUrl.value;
-        _apiKeyController.text = apiConfig.apiKey.value;
-        _modelsController.text = apiConfig.models.value;
+        _serviceNameController.text = apiConfig.serviceName;
+        _baseUrlController.text = apiConfig.baseUrl;
+        _apiKeyController.text = apiConfig.apiKey;
+        _modelsController.text = apiConfig.models;
 
         _isProcessing = false;
       });
@@ -235,7 +227,7 @@ class _ApiInfoState extends State<ApiInfo> {
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _aiApi = _aiApi.copyWith(provider: value);
+                    _aiApi.provider = value;
                   });
                 }
               },
@@ -258,7 +250,7 @@ class _ApiInfoState extends State<ApiInfo> {
               },
               onChanged: (value) {
                 setState(() {
-                  _aiApi = _aiApi.copyWith(serviceName: value);
+                  _aiApi.serviceName = value;
                 });
               },
             ),
@@ -284,7 +276,7 @@ class _ApiInfoState extends State<ApiInfo> {
               },
               onChanged: (value) {
                 setState(() {
-                  _aiApi = _aiApi.copyWith(baseUrl: value);
+                  _aiApi.baseUrl = value;
                 });
               },
             ),
@@ -300,7 +292,7 @@ class _ApiInfoState extends State<ApiInfo> {
               ),
               onChanged: (value) {
                 setState(() {
-                  _aiApi = _aiApi.copyWith(apiKey: value);
+                  _aiApi.apiKey = value;
                 });
               },
             ),
@@ -548,7 +540,7 @@ class _ApiInfoState extends State<ApiInfo> {
                     if (!mounted) return;
 
                     // 关闭对话框并返回结果
-                    Navigator.of(context).pop(delete > 0 ? true : false);
+                    Navigator.of(context).pop(delete);
                   },
                 ),
               ),
@@ -571,18 +563,16 @@ class _ApiInfoState extends State<ApiInfo> {
                 // 验证表单
                 if (_formKey.currentState?.validate() ?? false) {
                   // 设置模型列表
-                  _aiApi = _aiApi.copyWith(models: _modelsController.text);
-                  // 将 AiApiData 转换
-                  final aiApiCompanion = _aiApi.toCompanion(true);
+                  _aiApi.models = _modelsController.text;
 
                   bool result = false;
                   // 判断是否有 ID
                   if (_aiApi.id == 0) {
                     // 插入
-                    result = await _aiApiService.insertAiApi(aiApiCompanion);
+                    result = await _aiApiService.insertAiApi(_aiApi);
                   } else {
                     // 更新
-                    result = await _aiApiService.updateAiApi(aiApiCompanion);
+                    result = await _aiApiService.updateAiApi(_aiApi);
                   }
 
                   // 检查组件是否仍然挂载

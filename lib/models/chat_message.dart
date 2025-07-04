@@ -1,40 +1,52 @@
-import 'package:ai_client/models/chat_session.dart';
-import 'package:drift/drift.dart';
+import 'package:hive/hive.dart';
 
-/// 消息类型枚举
-enum MessageType {
-  /// 文本
-  text,
+part 'chat_message.g.dart';
 
-  /// 文件
-  file,
+@HiveType(typeId: 2)
+class ChatMessage extends HiveObject {
+  // 主键ID
+  @HiveField(0)
+  late int id = 0;
 
-  /// 默认
-  system
-}
+  // 关联的会话ID
+  @HiveField(1)
+  late int sessionId;
 
-/// 消息角色枚举
-enum MessageRole {
-  /// 用户
-  user,
+  // 父级消息ID
+  @HiveField(2)
+  int? parentId;
 
-  /// 助手
-  assistant,
+  // 消息内容
+  @HiveField(3)
+  late String content;
 
-  /// 系统
-  system
-}
+  // 会话使用的API配置ID
+  @HiveField(4)
+  int? apiConfigId;
 
-/// 消息状态枚举
-enum MessageStatus {
-  /// 发送中
-  send,
+  // 会话使用的模型
+  @HiveField(5)
+  String? model;
 
-  /// 已发送
-  sent,
+  // 消息类型
+  @HiveField(6)
+  late MessageType type;
 
-  /// 发送失败
-  error
+  // 消息角色
+  @HiveField(7)
+  late MessageRole role;
+
+  // 消息创建时间
+  @HiveField(8)
+  late DateTime createTime = DateTime.now();
+
+  // 如果是文件类型，存储文件路径
+  @HiveField(9)
+  String? filePath;
+
+  // 消息状态（发送中、已发送、发送失败等）
+  @HiveField(10)
+  late MessageStatus status;
 }
 
 /// 消息状态转换
@@ -49,38 +61,50 @@ MessageStatus convertStatus(String status) {
   }
 }
 
-class ChatMessages extends Table {
-  // 主键ID
-  IntColumn get id => integer().autoIncrement()();
+/// 消息类型枚举
+@HiveType(typeId: 3)
+enum MessageType {
+  /// 文本
+  @HiveField(0)
+  text,
 
-  // 关联的会话ID
-  IntColumn get sessionId => integer().references(ChatSessions, #id)();
+  /// 文件
+  @HiveField(1)
+  file,
 
-  // 父级消息ID
-  IntColumn get parentId => integer().nullable()();
+  /// 默认
+  @HiveField(2)
+  system,
+}
 
-  // 消息内容
-  TextColumn get content => text()();
-  
-  // 会话使用的API配置ID
-  IntColumn get apiConfigId => integer().nullable()();
-  
-  // 会话使用的模型
-  TextColumn get model => text().nullable()();
+/// 消息角色枚举
+@HiveType(typeId: 4)
+enum MessageRole {
+  /// 用户
+  @HiveField(0)
+  user,
 
-  // 消息类型
-  TextColumn get type => textEnum<MessageType>()();
+  /// 助手
+  @HiveField(1)
+  assistant,
 
-  // 消息角色
-  TextColumn get role => textEnum<MessageRole>()();
+  /// 系统
+  @HiveField(2)
+  system,
+}
 
-  // 消息创建时间
-  DateTimeColumn get createdTime =>
-      dateTime().withDefault(Constant(DateTime.now()))();
+/// 消息状态枚举
+@HiveType(typeId: 5)
+enum MessageStatus {
+  /// 发送中
+  @HiveField(0)
+  send,
 
-  // 如果是文件类型，存储文件路径
-  TextColumn get filePath => text().nullable()();
+  /// 已发送
+  @HiveField(1)
+  sent,
 
-  // 消息状态（发送中、已发送、发送失败等）
-  TextColumn get status => textEnum<MessageStatus>()();
+  /// 发送失败
+  @HiveField(2)
+  error,
 }

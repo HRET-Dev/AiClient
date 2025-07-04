@@ -1,24 +1,34 @@
-import 'package:drift/drift.dart';
+import 'package:hive/hive.dart';
 
-class ChatSessions extends Table {
+part 'chat_session.g.dart';
+
+@HiveType(typeId: 1)
+class ChatSession extends HiveObject {
   // 主键ID
-  IntColumn get id => integer().autoIncrement()();
-  
+  @HiveField(1)
+  late int id = 0;
+
   // 会话标题
-  TextColumn get title => text()();
+  @HiveField(2)
+  late String title;
 
   // 会话使用的API配置ID
-  IntColumn get apiConfigId => integer().nullable()();
-  
+  @HiveField(3)
+  late int apiConfigId;
+
   // 会话使用的模型
-  TextColumn get model => text().nullable()();
-  
+  @HiveField(4)
+  late String model;
+
   // 会话创建时间
-  DateTimeColumn get createdTime => dateTime().withDefault(Constant(DateTime.now()))();
-  
+  @HiveField(5)
+  late DateTime createTime = DateTime.now();
+
   // 会话最后更新时间
-  DateTimeColumn get updatedTime => dateTime().withDefault(Constant(DateTime.now()))();
-  
+  @HiveField(6)
+  late DateTime updateTime = DateTime.now();
+
   // 是否已收藏
-  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  @HiveField(7)
+  late bool isFavorite = false;
 }

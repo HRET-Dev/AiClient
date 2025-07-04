@@ -1,69 +1,74 @@
-import 'package:ai_client/database/app_database.dart';
-import 'package:drift/drift.dart';
+import 'package:ai_client/models/ai_api.dart';
+import 'package:ai_client/services/hive_storage_service.dart';
+import 'package:hive/hive.dart';
 
 /// AiApi 数据访问对象
 class AiApiRepository {
-  /// 数据库实例
-  final AppDatabase database;
+  /// AiApi数据盒子
+  final Box<AiApi> _aiApiBox = HiveStorageService.aiApiBox;
 
   // 构造函数
-  AiApiRepository(this.database);
+  AiApiRepository();
 
   /// 获取所有AI API记录
   /// 返回AI API列表
-  Future<List<AiApiData>> getAllAiApis() {
-    return database.select(database.aiApi).get();
+  List<AiApi> getAllAiApis() {
+    return _aiApiBox.values.where((api) => api.isActive).toList();
   }
 
   /// 获取所有启用的AI API记录
   /// 1:激活 0:未激活
   /// 返回启用的AI API列表
-  Future<List<AiApiData>> getAllActiveAiApis() {
-    return (database.select(database.aiApi)
-          ..where((t) => t.isActive.equals(true)))
-        .get();
+  List<AiApi> getAllActiveAiApis() {
+    return _aiApiBox.values.where((api) => api.isActive == true).toList();
   }
 
   /// 根据ID获取单个AI API
   ///
   /// [id] AI API ID
   /// 返回单个AI API对象
-  Future<AiApiData?> getAiApiById(int id) {
-    return (database.select(database.aiApi)..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+  AiApi? getAiApiById(int id) {
+    return _aiApiBox.values.where((api) => api.id == id).firstOrNull;
   }
 
   /// 插入AI API记录
   ///
   /// [aiApi] AI API对象
   /// 返回插入的记录ID
-  Future<int> insertAiApi(Insertable<AiApiData> aiApi) {
-    return database.into(database.aiApi).insert(aiApi);
+  Future<int> insertAiApi(AiApi aiApi) async {
+    // 添加记录并接收自动生成的Key
+    final key = await _aiApiBox.add(aiApi);
+    // 将自动生成的 key 作为 id 写回
+    aiApi.id = key;
+    // 保存记录
+    await aiApi.save();
+    // 返回id
+    return key;
   }
 
   /// 批量插入AI API记录
   ///
   /// [aiApis] AI API列表
-  Future<void> insertAiApis(List<Insertable<AiApiData>> aiApis) {
-    return database.batch((batch) {
-      batch.insertAll(database.aiApi, aiApis);
-    });
+  Future<void> insertAiApis(List<AiApi> apis) async {
+    final List<int> keys = (await _aiApiBox.addAll(apis)).toList();
+    // 写回每个对象的 id，并保存
+    for (var i = 0; i < apis.length; i++) {
+      apis[i].id = keys[i];
+      await apis[i].save();
+    }
   }
 
   /// 更新AI API记录
   ///
   /// [aiApi] AI API对象
-  /// 返回更新是否成功
-  Future<bool> updateAiApi(Insertable<AiApiData> aiApi) {
-    return database.update(database.aiApi).replace(aiApi);
+  Future<void> updateAiApi(AiApi aiApi) async {
+    await aiApi.save();
   }
 
   /// 删除AI API记录
   ///
   /// [id] AI API ID
-  /// 返回删除的记录数量
-  Future<int> deleteAiApi(int id) {
-    return (database.delete(database.aiApi)..where((t) => t.id.equals(id)))
-        .go();
+  Future<void> deleteAiApi(int id) async {
+    await _aiApiBox.delete(id);
   }
 }

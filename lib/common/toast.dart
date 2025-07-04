@@ -208,9 +208,7 @@ class Toast {
   static CancelFunc showLoading() {
     return BotToast.showCustomLoading(
       toastBuilder: (cancelFunc) {
-        return Container(
-          child: Text("data"),
-        );
+        return Text("data");
       },
     );
   }

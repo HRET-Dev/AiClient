@@ -1,12 +1,10 @@
 import 'dart:convert';
 
 import 'package:ai_client/common/utils/chat_http.dart';
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/locale_keys.dart';
+import 'package:ai_client/models/ai_api.dart';
 import 'package:ai_client/models/chat_message.dart';
-import 'package:ai_client/repositories/ai_api_repository.dart';
-import 'package:ai_client/repositories/chat_message_repository.dart';
-import 'package:ai_client/repositories/chat_session_repository.dart';
+import 'package:ai_client/models/chat_session.dart';
 import 'package:ai_client/services/ai_api_service.dart';
 import 'package:ai_client/services/chat_message_service.dart';
 import 'package:ai_client/services/chat_session_service.dart';
@@ -19,8 +17,8 @@ class ChatProvider extends ChangeNotifier {
   // 使用 ChatHttp 调用 OpenAI 接口
   final ChatHttp chatHttp = ChatHttp();
 
-  // 数据源
-  late final AppDatabase appDatabase;
+  // 用于取消当前请求的CancelToken
+  CancelToken? _currentCancelToken;
 
   /// AiApi 服务类
   late final AiApiService aiApiService;
@@ -35,17 +33,13 @@ class ChatProvider extends ChangeNotifier {
   final String currentSessionId = "currentSessionId";
 
   // 构造函数
-  ChatProvider({AppDatabase? database}) {
-    // 使用传入的数据库实例或创建新实例
-    appDatabase = database ?? AppDatabase();
+  ChatProvider() {
     // 初始化 AiApi 服务类
-    aiApiService = AiApiService(AiApiRepository(appDatabase));
+    aiApiService = AiApiService();
     // 初始化聊天会话 服务类
-    chatSessionService = ChatSessionService(
-        ChatSessionRepository(appDatabase), ChatMessageRepository(appDatabase));
+    chatSessionService = ChatSessionService();
     // 初始化聊天信息 服务类
-    chatMessageService = ChatMessageService(
-        ChatMessageRepository(appDatabase), ChatSessionRepository(appDatabase));
+    chatMessageService = ChatMessageService();
 
     // 初始化 API 配置
     loadApiConfig();
@@ -105,10 +99,10 @@ class ChatProvider extends ChangeNotifier {
   String chatSessionName = "新会话";
 
   // 加载到的 API 配置列表
-  late List<AiApiData> apiConfigs;
+  late List<AiApi> apiConfigs;
 
   // 当前正在使用的 API 配置
-  AiApiData? currentApi;
+  AiApi? currentApi;
 
   // 当前模型列表
   List<String> models = [];
@@ -222,32 +216,33 @@ class ChatProvider extends ChangeNotifier {
     final userMessage = content;
 
     // 添加用户消息
-    messages.add(ChatMessage(
-        id: 0,
-        sessionId: chatSessionId,
-        content: userMessage,
-        model: currentModel,
-        type: MessageType.system,
-        role: MessageRole.user,
-        createdTime: DateTime.now(),
-        status: MessageStatus.sent));
+    messages.add(ChatMessage()
+      ..sessionId = chatSessionId
+      ..content = userMessage
+      ..model = currentModel
+      ..type = MessageType.system
+      ..role = MessageRole.user
+      ..createTime = DateTime.now()
+      ..status = MessageStatus.sent);
     inputController.clear();
     isWaitingResponse = true; // 设置等待状态
+
+    // 创建新的CancelToken
+    _currentCancelToken = CancelToken();
     notifyListeners();
 
     // 滚动到最底部
     scrollToBottom();
 
     // 默认加载中
-    var aiMessage = ChatMessage(
-        id: 0,
-        sessionId: chatSessionId,
-        content: LocaleKeys.chatPageThinking.tr(),
-        model: currentModel,
-        type: MessageType.system,
-        role: MessageRole.assistant,
-        createdTime: DateTime.now(),
-        status: MessageStatus.send);
+    var aiMessage = ChatMessage()
+      ..sessionId = chatSessionId
+      ..content = LocaleKeys.chatPageThinking.tr()
+      ..model = currentModel
+      ..type = MessageType.system
+      ..role = MessageRole.assistant
+      ..createTime = DateTime.now()
+      ..status = MessageStatus.send;
     messages.add(aiMessage);
     notifyListeners();
 
@@ -261,7 +256,8 @@ class ChatProvider extends ChangeNotifier {
             api: currentApi!,
             model: currentModel,
             message: userMessage,
-            historys: newMessages);
+            historys: newMessages,
+            cancelToken: _currentCancelToken);
 
         // 用于累积AI回复的内容
         String accumulatedContent = "";
@@ -272,8 +268,9 @@ class ChatProvider extends ChangeNotifier {
           accumulatedContent += content;
 
           // 更新消息内容
-          aiMessage = aiMessage.copyWith(
-              content: accumulatedContent, status: MessageStatus.sent);
+          aiMessage
+            ..content = accumulatedContent
+            ..status = MessageStatus.sent;
 
           // 直接使用索引更新messages列表
           if (aiMessageIndex < messages.length) {
@@ -286,6 +283,7 @@ class ChatProvider extends ChangeNotifier {
         }, onDone: () {
           // 流结束时的处理
           isWaitingResponse = false; // 清除等待状态
+          _currentCancelToken = null; // 清除CancelToken
           notifyListeners();
 
           // 滚动到最底部
@@ -330,8 +328,9 @@ class ChatProvider extends ChangeNotifier {
           ''';
 
           // 错误处理
-          aiMessage = aiMessage.copyWith(
-              content: errorMarkdown, status: MessageStatus.error);
+          aiMessage
+            ..content = errorMarkdown
+            ..status = MessageStatus.error;
 
           // 直接使用索引更新messages列表
           if (aiMessageIndex < messages.length) {
@@ -339,6 +338,7 @@ class ChatProvider extends ChangeNotifier {
           }
 
           isWaitingResponse = false; // 清除等待状态
+          _currentCancelToken = null; // 清除CancelToken
           notifyListeners();
 
           // 滚动到最底部
@@ -357,8 +357,9 @@ class ChatProvider extends ChangeNotifier {
             response.data['choices'][0]['message']['content'] as String;
 
         // 更新消息内容
-        aiMessage =
-            aiMessage.copyWith(content: content, status: MessageStatus.sent);
+        aiMessage
+          ..content = content
+          ..status = MessageStatus.sent;
 
         // 直接使用索引更新messages列表
         if (aiMessageIndex < messages.length) {
@@ -366,6 +367,7 @@ class ChatProvider extends ChangeNotifier {
         }
 
         isWaitingResponse = false; // 清除等待状态
+        _currentCancelToken = null; // 清除CancelToken
         notifyListeners();
 
         // 滚动到最底部
@@ -412,20 +414,33 @@ class ChatProvider extends ChangeNotifier {
 
       // 直接使用之前保存的索引更新消息
       if (aiMessageIndex < messages.length) {
-        messages[aiMessageIndex] = ChatMessage(
-            id: 0,
-            sessionId: chatSessionId,
-            content: errorMarkdown,
-            model: currentModel,
-            type: MessageType.system,
-            role: MessageRole.assistant,
-            createdTime: DateTime.now(),
-            status: MessageStatus.error);
+        messages[aiMessageIndex]
+          ..sessionId = chatSessionId
+          ..content = errorMarkdown
+          ..model = currentModel
+          ..type = MessageType.system
+          ..role = MessageRole.assistant
+          ..createTime = DateTime.now()
+          ..status = MessageStatus.error;
       }
       isWaitingResponse = false; // 清除等待状态
+      _currentCancelToken = null; // 清除CancelToken
       notifyListeners();
 
       // 保存聊天记录
+      saveChat();
+    }
+  }
+
+  /// 停止当前的AI生成
+  void stopGeneration() {
+    if (_currentCancelToken != null && !_currentCancelToken!.isCancelled) {
+      _currentCancelToken!.cancel('用户停止生成');
+      _currentCancelToken = null;
+      isWaitingResponse = false;
+      notifyListeners();
+
+      // 保存当前的聊天记录
       saveChat();
     }
   }
@@ -480,7 +495,7 @@ class ChatProvider extends ChangeNotifier {
             status: message.status);
 
         // 更新消息的ID
-        messages[i] = message.copyWith(id: messageId);
+        messages[i].id = messageId;
       }
       notifyListeners();
     } catch (e) {
@@ -523,7 +538,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// 切换API配置
-  void switchApi(AiApiData api) {
+  void switchApi(AiApi api) {
     currentApi = api;
     // 更新模型列表
     models = api.models.split(',');
@@ -604,21 +619,23 @@ class ChatProvider extends ChangeNotifier {
     List<ChatMessage> newMessages = List.from(messages);
 
     isWaitingResponse = true; // 设置等待状态
+
+    // 创建新的CancelToken
+    _currentCancelToken = CancelToken();
     notifyListeners();
 
     // 滚动到最底部
     scrollToBottom();
 
     // 默认加载中
-    var aiMessage = ChatMessage(
-        id: 0,
-        sessionId: chatSessionId,
-        content: LocaleKeys.chatPageThinking.tr(),
-        model: currentModel,
-        type: MessageType.system,
-        role: MessageRole.assistant,
-        createdTime: DateTime.now(),
-        status: MessageStatus.send);
+    var aiMessage = ChatMessage()
+      ..sessionId = chatSessionId
+      ..content = LocaleKeys.chatPageThinking.tr()
+      ..model = currentModel
+      ..type = MessageType.system
+      ..role = MessageRole.assistant
+      ..createTime = DateTime.now()
+      ..status = MessageStatus.send;
     messages.add(aiMessage);
     notifyListeners();
 
@@ -632,7 +649,8 @@ class ChatProvider extends ChangeNotifier {
             api: currentApi!,
             model: currentModel,
             message: userMessageContent,
-            historys: newMessages);
+            historys: newMessages,
+            cancelToken: _currentCancelToken);
 
         // ... 以下代码与sendMessage方法中的流处理部分相同 ...
         // 用于累积AI回复的内容
@@ -644,8 +662,9 @@ class ChatProvider extends ChangeNotifier {
           accumulatedContent += content;
 
           // 更新消息内容
-          aiMessage = aiMessage.copyWith(
-              content: accumulatedContent, status: MessageStatus.sent);
+          aiMessage
+            ..content = accumulatedContent
+            ..status = MessageStatus.sent;
 
           // 直接使用索引更新messages列表
           if (aiMessageIndex < messages.length) {
@@ -658,6 +677,7 @@ class ChatProvider extends ChangeNotifier {
         }, onDone: () {
           // 流结束时的处理
           isWaitingResponse = false; // 清除等待状态
+          _currentCancelToken = null; // 清除CancelToken
           notifyListeners();
 
           // 滚动到最底部
@@ -703,8 +723,10 @@ class ChatProvider extends ChangeNotifier {
           ''';
 
           // 错误处理
-          aiMessage = aiMessage.copyWith(
-              content: errorMarkdown, status: MessageStatus.error);
+
+          aiMessage
+            ..content = errorMarkdown
+            ..status = MessageStatus.error;
 
           // 直接使用索引更新messages列表
           if (aiMessageIndex < messages.length) {
@@ -712,6 +734,7 @@ class ChatProvider extends ChangeNotifier {
           }
 
           isWaitingResponse = false; // 清除等待状态
+          _currentCancelToken = null; // 清除CancelToken
           notifyListeners();
 
           // 滚动到最底部
@@ -730,8 +753,9 @@ class ChatProvider extends ChangeNotifier {
             response.data['choices'][0]['message']['content'] as String;
 
         // 更新消息内容
-        aiMessage =
-            aiMessage.copyWith(content: content, status: MessageStatus.sent);
+        aiMessage
+          ..content = content
+          ..status = MessageStatus.sent;
 
         // 直接使用索引更新messages列表
         if (aiMessageIndex < messages.length) {
@@ -786,17 +810,17 @@ class ChatProvider extends ChangeNotifier {
 
       // 直接使用之前保存的索引更新消息
       if (aiMessageIndex < messages.length) {
-        messages[aiMessageIndex] = ChatMessage(
-            id: 0,
-            sessionId: chatSessionId,
-            content: errorMarkdown,
-            model: currentModel,
-            type: MessageType.system,
-            role: MessageRole.assistant,
-            createdTime: DateTime.now(),
-            status: MessageStatus.error);
+        messages[aiMessageIndex]
+          ..sessionId = chatSessionId
+          ..content = errorMarkdown
+          ..model = currentModel
+          ..type = MessageType.system
+          ..role = MessageRole.assistant
+          ..createTime = DateTime.now()
+          ..status = MessageStatus.error;
       }
       isWaitingResponse = false; // 清除等待状态
+      _currentCancelToken = null; // 清除CancelTokens
       notifyListeners();
 
       // 保存聊天记录

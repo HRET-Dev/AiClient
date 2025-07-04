@@ -1,6 +1,6 @@
 import 'package:ai_client/common/toast.dart';
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/locale_keys.dart';
+import 'package:ai_client/models/ai_api.dart';
 import 'package:ai_client/pages/chat/chat_provider.dart';
 import 'package:ai_client/pages/chat/input.dart';
 import 'package:ai_client/pages/chat/message_list.dart';
@@ -90,7 +90,7 @@ class ChatPageState extends State<ChatPage> {
     }
 
     // 创建临时变量用于对话框中的选择
-    AiApiData tempSelectedApi = _chatProvider.currentApi!;
+    AiApi tempSelectedApi = _chatProvider.currentApi!;
     String tempSelectedModel = _chatProvider.currentModel;
     bool tempUseStream = _chatProvider.useStream;
 
@@ -174,10 +174,7 @@ class ChatPageState extends State<ChatPage> {
                                     // 长按时 通过弹窗打开 API 详情页面
                                     final result = await showDialog(
                                       context: context,
-                                      builder: (context) => ApiInfo(
-                                        aiApi: api,
-                                        appDatabase: _chatProvider.appDatabase,
-                                      ),
+                                      builder: (context) => ApiInfo(aiApi: api),
                                     );
 
                                     // 如果组件已卸载，则不继续执行
@@ -349,6 +346,7 @@ class ChatPageState extends State<ChatPage> {
                   isWaitingResponse: chatProvider.isWaitingResponse,
                   onSendMessage: () => chatProvider
                       .sendMessage(chatProvider.inputController.text),
+                  onStopGeneration: () => chatProvider.stopGeneration(),
                 ),
               ),
             ],

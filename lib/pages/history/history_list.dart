@@ -1,9 +1,7 @@
-import 'package:ai_client/database/app_database.dart';
 import 'package:ai_client/generated/locale_keys.dart';
+import 'package:ai_client/models/chat_session.dart';
 import 'package:ai_client/pages/chat/chat_provider.dart';
 import 'package:ai_client/pages/home_page.dart';
-import 'package:ai_client/repositories/chat_message_repository.dart';
-import 'package:ai_client/repositories/chat_session_repository.dart';
 import 'package:ai_client/services/chat_session_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +20,8 @@ class HistoryList extends StatefulWidget {
 
 /// 历史记录列表状态管理
 class HistoryListState extends State<HistoryList> with WidgetsBindingObserver {
-  // 数据源
-  late final AppDatabase _appDatabase;
-
   /// 聊天会话 服务类
-  late final ChatSessionService _chatSessionService;
+  late final ChatSessionService _chatSessionService = ChatSessionService();
 
   /// 聊天会话信息列表
   List<ChatSession> _chatSessions = [];
@@ -37,12 +32,6 @@ class HistoryListState extends State<HistoryList> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    // 初始化数据源
-    _appDatabase = AppDatabase();
-    // 初始化聊天会话 服务类
-    _chatSessionService = ChatSessionService(
-        ChatSessionRepository(_appDatabase),
-        ChatMessageRepository(_appDatabase));
     // 初始化数据
     _initData();
 
@@ -138,7 +127,7 @@ class HistoryListState extends State<HistoryList> with WidgetsBindingObserver {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   // 会话创建时间 格式为 2025-03-22 12:00:00
-                  subtitle: Text(dateFormat.format(chatSession.updatedTime)),
+                  subtitle: Text(dateFormat.format(chatSession.updateTime)),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // 单击事件
                   onTap: () {
