@@ -52,12 +52,6 @@ cd AiClient
 flutter pub get
 ```
 
-#### 1.3 代码生成
-```bash
-# 生成drift相关代码
-dart run build_runner build
-```
-
 ### 2. ios、Android 平台特定配置
 <details>
 <summary>Android 配置</summary>
