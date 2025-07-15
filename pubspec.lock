@@ -446,10 +446,10 @@ packages:
     dependency: "direct main"
     description:
       name: gpt_markdown
-      sha256: "0ef0d258b8a97ed11a985a5ed348e9ec9428199f73011704704ddd0620a894eb"
+      sha256: "68d5337c8a00fc03a37dbddf84a6fd90401c30e99b6baf497ef9522a81fc34ee"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "1.1.2"
   graphs:
     dependency: transitive
     description:
@@ -614,10 +614,10 @@ packages:
     dependency: transitive
     description:
       name: lucide_icons_flutter
-      sha256: "2fbe1a1e229b57a562bd9f1e30ddd2f4fb4743649e0afde3fe549d7370cf0c86"
+      sha256: cd48aec71f016f60f5c8ba65ac1d985e7526aa8c3633fbe5e078fc992c3273ac
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.6"
+    version: "3.0.7"
   macros:
     dependency: transitive
     description:

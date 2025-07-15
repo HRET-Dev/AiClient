@@ -1,7 +1,7 @@
 {pkgs}: {
   channel = "stable-24.05";
   packages = [
-    pkgs.jdk17
+    pkgs.jdk21
     pkgs.unzip
     pkgs.dart
   ];

@@ -31,13 +31,16 @@ class InputState extends State<InputWidget> {
         children: [
           // 输入框
           Expanded(
-            child: ShadInput(
-              controller: widget.messageController,
-              placeholder: Text(tr(LocaleKeys.chatPageInputHintText)),
-              maxLines: null,
-              minLines: 1,
-              onChanged: (value) => setState(() {}),
-              onSubmitted: (value) => widget.onSendMessage(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: 150.0), // 设置最大高度
+              child: ShadInput(
+                controller: widget.messageController,
+                placeholder: Text(tr(LocaleKeys.chatPageInputHintText)),
+                maxLines: null, // 保留 maxLines: null 允许内部滚动
+                minLines: 1,
+                onChanged: (value) => setState(() {}),
+                onSubmitted: (value) => widget.onSendMessage(),
+              ),
             ),
           ),
           const SizedBox(width: 8),
