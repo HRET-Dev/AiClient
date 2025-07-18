@@ -114,7 +114,7 @@ class ChatProvider extends ChangeNotifier {
   bool isWaitingResponse = false;
 
   // 是否使用流式请求
-  bool useStream = false;
+  bool useStream = true;
 
   // 输入框控制器
   final TextEditingController inputController = TextEditingController();
@@ -267,14 +267,23 @@ class ChatProvider extends ChangeNotifier {
           // 累积内容
           accumulatedContent += content;
 
-          // 更新消息内容
-          aiMessage
+          // 创建一个新的 ChatMessage 实例来更新UI
+          final newMessage = ChatMessage()
+            ..id = aiMessage.id
+            ..sessionId = aiMessage.sessionId
+            ..parentId = aiMessage.parentId
             ..content = accumulatedContent
+            ..apiConfigId = aiMessage.apiConfigId
+            ..model = aiMessage.model
+            ..type = aiMessage.type
+            ..role = aiMessage.role
+            ..createTime = aiMessage.createTime
+            ..filePath = aiMessage.filePath
             ..status = MessageStatus.sent;
 
           // 直接使用索引更新messages列表
           if (aiMessageIndex < messages.length) {
-            messages[aiMessageIndex] = aiMessage;
+            messages[aiMessageIndex] = newMessage;
           }
           notifyListeners();
 
@@ -652,7 +661,6 @@ class ChatProvider extends ChangeNotifier {
             historys: newMessages,
             cancelToken: _currentCancelToken);
 
-        // ... 以下代码与sendMessage方法中的流处理部分相同 ...
         // 用于累积AI回复的内容
         String accumulatedContent = "";
 
@@ -661,14 +669,23 @@ class ChatProvider extends ChangeNotifier {
           // 累积内容
           accumulatedContent += content;
 
-          // 更新消息内容
-          aiMessage
+          // 创建一个新的 ChatMessage 实例来更新UI
+          final newMessage = ChatMessage()
+            ..id = aiMessage.id
+            ..sessionId = aiMessage.sessionId
+            ..parentId = aiMessage.parentId
             ..content = accumulatedContent
+            ..apiConfigId = aiMessage.apiConfigId
+            ..model = aiMessage.model
+            ..type = aiMessage.type
+            ..role = aiMessage.role
+            ..createTime = aiMessage.createTime
+            ..filePath = aiMessage.filePath
             ..status = MessageStatus.sent;
 
           // 直接使用索引更新messages列表
           if (aiMessageIndex < messages.length) {
-            messages[aiMessageIndex] = aiMessage;
+            messages[aiMessageIndex] = newMessage;
           }
           notifyListeners();
 
@@ -686,7 +703,6 @@ class ChatProvider extends ChangeNotifier {
           // 保存聊天记录
           saveChat();
         }, onError: (error) {
-          // ... 错误处理代码与sendMessage方法相同 ...
           // 封装错误信息
           String errorMessage = '请求出错';
 
@@ -772,7 +788,6 @@ class ChatProvider extends ChangeNotifier {
         saveChat();
       }
     } catch (e) {
-      // ... 错误处理代码与sendMessage方法相同 ...
       // 控制台打印错误信息
       print('请求出错: $e');
       // 出错时，显示错误信息

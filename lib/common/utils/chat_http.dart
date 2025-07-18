@@ -168,7 +168,7 @@ class ChatHttp {
     if (historys != null && historys.isNotEmpty) {
       for (var history in historys) {
         final roleContent = {
-          'role': history.role,
+          'role': history.role.name,
           'content': history.content,
         };
         messages.add(roleContent);
@@ -204,34 +204,38 @@ class ChatHttp {
 
       // 创建一个控制器来管理输出流
       final streamController = StreamController<String>();
+      // 用于缓存不完整的JSON数据
+      String buffer = '';
 
       // 处理原始字节流
       responseStream.cast<List<int>>().listen(
         (List<int> data) {
-          // 解码字节数据
-          final String text = utf8.decode(data);
-          // 按行分割
-          final List<String> lines = text.split('\n');
+          // 解码字节数据并与缓冲区数据合并
+          buffer += utf8.decode(data);
 
-          for (var line in lines) {
-            if (line.isEmpty || line == '[DONE]') continue;
+          // 尝试按行处理
+          while (buffer.contains('\n')) {
+            final int newlineIndex = buffer.indexOf('\n');
+            final String line = buffer.substring(0, newlineIndex).trim();
+            buffer = buffer.substring(newlineIndex + 1);
 
-            // 处理每一行
-            if (line.startsWith('data: ')) {
-              final jsonData = line.substring(6).trim();
-              if (jsonData == '[DONE]') continue;
+            if (line.isEmpty || !line.startsWith('data: ')) continue;
 
-              try {
-                final Map<String, dynamic> data = json.decode(jsonData);
-                final String? content =
-                    data['choices']?[0]?['delta']?['content'];
-                if (content != null && content.isNotEmpty) {
-                  // 直接发送增量内容，不累积
-                  streamController.add(content);
-                }
-              } catch (e) {
-                print('解析流式响应失败: $e，原始数据: $jsonData');
+            final jsonData = line.substring(6).trim();
+            if (jsonData == '[DONE]') {
+              streamController.close();
+              return;
+            }
+
+            try {
+              final Map<String, dynamic> data = json.decode(jsonData);
+              final String? content = data['choices']?[0]?['delta']?['content'];
+              if (content != null && content.isNotEmpty) {
+                streamController.add(content);
               }
+            } catch (e) {
+              // 缓存不完整的JSON，等待下一个数据块
+              print('解析JSON失败，加入缓冲区: $jsonData');
             }
           }
         },
