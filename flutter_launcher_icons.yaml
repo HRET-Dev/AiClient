@@ -1,32 +1,31 @@
-# flutter pub run flutter_launcher_icons
 flutter_launcher_icons:
+  # 默认图标
   image_path: "assets/icon/icon.png"
 
+  # ✅ Android 图标
   android: "launcher_icon"
-  # image_path_android: "assets/icon/icon.png"
-  min_sdk_android: 21 # android min sdk min:16, default 21
-  # adaptive_icon_background: "assets/icon/background.png"
-  # adaptive_icon_foreground: "assets/icon/foreground.png"
-  # adaptive_icon_monochrome: "assets/icon/monochrome.png"
+  min_sdk_android: 21
+  # image_path: "assets/icon/icon.png"
 
+  # ✅ iOS 图标
   ios: true
-  # image_path_ios: "assets/icon/icon.png"
+  # image_path: "assets/icon/icon.png"
   remove_alpha_channel_ios: true
-  # image_path_ios_dark_transparent: "assets/icon/icon_dark.png"
-  # image_path_ios_tinted_grayscale: "assets/icon/icon_tinted.png"
-  # desaturate_tinted_to_grayscale_ios: true
 
+  # ✅ Web 图标
   web:
     generate: true
-    image_path: "assets/icon/icon.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
+    # image_path: "assets/icon/icon.png"
+    background_color: "#ffffff"
+    theme_color: "#00C4B3"
 
+  # ✅ Windows 图标
   windows:
     generate: true
-    image_path: "assets/icon/icon.png"
-    icon_size: 48 # min:48, max:256, default: 48
+    # image_path: "assets/icon/icon.png"
+    icon_size: 256
 
+  # ✅ macOS 图标
   macos:
     generate: true
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon/icon-macos.png"
